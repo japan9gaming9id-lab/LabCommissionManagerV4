@@ -385,16 +385,16 @@ function render() {
     }
 
     document.getElementById("recordList").innerHTML =
-        entries.map(e => `
-            <p>
-                ${escapeHTML(e.date)} |
-                ${escapeHTML(e.patient)} |
-                ${escapeHTML(e.doctor)} |
-                ${escapeHTML(e.test)} |
-                ${money(e.price)} |
-                Commission ${money(e.commission)}
-            </p>
-        `).join("");
+    entries.map((e, index) => `
+        <div class="detail-entry">
+            <strong>${index + 1}. ${escapeHTML(e.patient)}</strong>
+            <p>Date: ${escapeHTML(e.date)}</p>
+            <p>Doctor: ${escapeHTML(e.doctor)}</p>
+            <p>Test: ${escapeHTML(e.test)}</p>
+            <p>Test Price: ${money(e.price)}</p>
+            <p>Commission: ${money(e.commission)}</p>
+        </div>
+    `).join("");
 
     let totalPrice = entries.reduce((s, e) => s + Number(e.price || 0), 0);
     let totalCommission = entries.reduce((s, e) => s + Number(e.commission || 0), 0);
