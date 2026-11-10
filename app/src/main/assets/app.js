@@ -788,6 +788,7 @@ function renderRecords() {
         <div class="doctor-card">
             <h3>${escapeHTML(entry.patient || "Patient")}</h3>
             <p>Date: ${escapeHTML(entry.date || "-")}</p>
+            <p>Age: ${escapeHTML(entry.age || "-")}</p>
             <p>Doctor: ${escapeHTML(entry.doctor || "-")}</p>
 
             <h4>Tests</h4>
