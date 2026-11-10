@@ -575,7 +575,8 @@ if (getElement("entryTest")) {
 
 
 
-// ---------- MULTI TEST ENTRY ----------
+
+// ---------- ADD / UPDATE PATIENT TEST ----------
 
 function addTestToPatient() {
     const testId = getElement("entryTest")?.value;
@@ -585,18 +586,25 @@ function addTestToPatient() {
     const percentValue = getElement("commissionPercent")?.value ?? "";
     const percent = Number(percentValue);
 
-    if (!testId) {
-        alert("Pehle Test Select Karen");
-        return;
-    }
+    let test;
 
-    const test = tests.find(t =>
-        t.id == testId && t.active !== false
-    );
+    if (editingPatientTestIndex !== null) {
+        test = selectedPatientTests[editingPatientTestIndex];
+        if (!test) return;
+    } else {
+        if (!testId) {
+            alert("Pehle Test Select Karen");
+            return;
+        }
 
-    if (!test) {
-        alert("Ye Test available nahi hai");
-        return;
+        test = tests.find(t =>
+            t.id == testId && t.active !== false
+        );
+
+        if (!test) {
+            alert("Ye Test available nahi hai");
+            return;
+        }
     }
 
     if (
@@ -612,21 +620,40 @@ function addTestToPatient() {
         return;
     }
 
-    selectedPatientTests.push({
-        testId: test.id,
-        test: test.name,
-        price,
-        percent,
-        commission: price * percent / 100
-    });
+    const updatedTest = editingPatientTestIndex !== null
+        ? {
+            ...test,
+            price,
+            percent,
+            commission: price * percent / 100
+        }
+        : {
+            testId: test.id,
+            test: test.name,
+            price,
+            percent,
+            commission: price * percent / 100
+        };
+
+    if (editingPatientTestIndex !== null) {
+        selectedPatientTests[editingPatientTestIndex] = updatedTest;
+        editingPatientTestIndex = null;
+    } else {
+        selectedPatientTests.push(updatedTest);
+    }
 
     renderSelectedPatientTests();
 
     if (getElement("entryTest")) getElement("entryTest").value = "";
     if (getElement("testPrice")) getElement("testPrice").value = "";
     if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
+
+    const addButton = document.querySelector(".detail-box button");
+    if (addButton) addButton.textContent = "+ Add Test";
+
     calculateCommission();
 }
+
 
 function removePatientTest(index) {
     selectedPatientTests.splice(index, 1);
