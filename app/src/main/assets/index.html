@@ -67,13 +67,32 @@
     <div id="doctorDetailsContent"></div>
 </section>
 
+
 <section id="tests" class="panel" hidden>
     <h2>Test Management</h2>
-    <input id="testName" placeholder="Test Name">
-    <input id="testPercent" type="number" value="50" placeholder="Commission %">
-    <button onclick="addTest()">Add Test</button>
+
+    <div class="doctor-form">
+        <h3 id="testFormTitle">Add New Test</h3>
+
+        <label>Test Name</label>
+        <input id="testName" placeholder="Enter Test Name">
+
+        <label>Default Commission %</label>
+        <input id="testPercent" type="number" value="50" min="0" max="100" placeholder="Commission %">
+
+        <button id="testSaveBtn" onclick="addTest()">Add Test</button>
+        <button id="testCancelBtn" onclick="cancelTestEdit()" hidden>Cancel</button>
+    </div>
+
+    <div class="doctor-search">
+        <h3>Search Tests</h3>
+        <input id="testSearch" placeholder="Search Test Name..." oninput="renderTests()">
+    </div>
+
+    <h3>All Tests</h3>
     <div id="testList"></div>
 </section>
+
 
 <section id="entry" class="panel" hidden>
     <h2>New Entry</h2>
