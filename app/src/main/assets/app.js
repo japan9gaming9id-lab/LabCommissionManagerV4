@@ -955,6 +955,11 @@ function renderRecords() {
             <p><strong>Total Price: ${money(getEntryTotalPrice(entry))}</strong></p>
             <p><strong>Total Commission: ${money(getEntryTotalCommission(entry))}</strong></p>
 
+<button class="btn-edit"
+    onclick="editEntry(${Number(entry.id)})">
+    Edit Entry
+</button>
+
 <button class="btn-inactive"
     onclick="deleteEntry(${Number(entry.id)})">
     Delete Entry
