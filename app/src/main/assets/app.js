@@ -12,6 +12,7 @@ let entries = JSON.parse(localStorage.getItem("entries") || "[]");
 
 let selectedPatientTests = [];
 let editingEntryId = null;
+let editingPatientTestIndex = null;
 let editingDoctorId = null;
 let editingTestId = null;
 let currentDoctorId = null;
