@@ -757,7 +757,13 @@ function renderRecords() {
             <p><strong>Total Tests: ${getEntryTests(entry).length}</strong></p>
             <p><strong>Total Price: ${money(getEntryTotalPrice(entry))}</strong></p>
             <p><strong>Total Commission: ${money(getEntryTotalCommission(entry))}</strong></p>
-        </div>
+
+<button class="btn-inactive"
+    onclick="deleteEntry(${Number(entry.id)})">
+    Delete Entry
+</button>
+
+</div>
     `).join("");
 }
 
