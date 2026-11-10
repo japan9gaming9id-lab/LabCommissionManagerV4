@@ -687,8 +687,28 @@ function editPatientTest(index) {
 }
 
 function removePatientTest(index) {
+
+    if (editingPatientTestIndex === index) {
+        editingPatientTestIndex = null;
+
+        if (getElement("entryTest")) getElement("entryTest").value = "";
+        if (getElement("testPrice")) getElement("testPrice").value = "";
+        if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
+
+        const addButton = document.querySelector(".detail-box button");
+        if (addButton) addButton.textContent = "+ Add Test";
+
+    } else if (
+        editingPatientTestIndex !== null &&
+        editingPatientTestIndex > index
+    ) {
+        editingPatientTestIndex--;
+    }
+
     selectedPatientTests.splice(index, 1);
+
     renderSelectedPatientTests();
+    calculateCommission();
 }
 
 function renderSelectedPatientTests() {
