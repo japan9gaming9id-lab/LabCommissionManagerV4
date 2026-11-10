@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Commission Manager V4</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div>
+        <small>LAB MANAGEMENT</small>
+        <h2>Lab Commission Manager <span>V4</span></h2>
+    </div>
+    <button id="themeBtn">☼</button>
+</header>
+
+<nav>
+    <button onclick="showTab('home')">Home</button>
+    <button onclick="showTab('doctors')">Doctors</button>
+    <button onclick="showTab('tests')">Tests</button>
+    <button onclick="showTab('entry')">New Entry</button>
+    <button onclick="showTab('records')">Records</button>
+</nav>
+
+<section id="home" class="panel">
+    <h2>Dashboard</h2>
+    <div class="stats">
+        <div>Total Test Price <h2 id="totalPrice">₹0</h2></div>
+        <div>Total Commission <h2 id="totalCommission">₹0</h2></div>
+    </div>
+    <p>Welcome to Lab Commission Manager V4</p>
+</section>
+
+<section id="doctors" class="panel" hidden>
+    <h2>Doctor Management</h2>
+    <input id="doctorName" placeholder="Doctor Name">
+    <input id="doctorPhone" placeholder="Phone Number">
+    <button onclick="addDoctor()">Add Doctor</button>
+    <div id="doctorList"></div>
+</section>
+
+<section id="tests" class="panel" hidden>
+    <h2>Test Management</h2>
+    <input id="testName" placeholder="Test Name">
+    <input id="testPercent" type="number" value="50" placeholder="Commission %">
+    <button onclick="addTest()">Add Test</button>
+    <div id="testList"></div>
+</section>
+
+<section id="entry" class="panel" hidden>
+    <h2>New Entry</h2>
+    <label>Date</label>
+    <input type="date" id="entryDate">
+    <label>Patient Name</label>
+    <input id="patientName" placeholder="Patient Name">
+    <label>Doctor Name</label>
+    <select id="entryDoctor"></select>
+    <label>Test Name</label>
+    <select id="entryTest"></select>
+    <label>Test Price</label>
+    <input type="number" id="testPrice" placeholder="Test Price">
+    <label>Commission %</label>
+    <input type="number" id="commissionPercent" value="50">
+    <h3>Commission: <span id="commissionValue">₹0</span></h3>
+    <button onclick="saveEntry()">Save Entry</button>
+</section>
+
+<section id="records" class="panel" hidden>
+    <h2>Records</h2>
+    <div id="recordList"></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
