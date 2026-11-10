@@ -654,6 +654,37 @@ function addTestToPatient() {
     calculateCommission();
 }
 
+// ---------- EDIT PATIENT TEST ----------
+
+function editPatientTest(index) {
+    const test = selectedPatientTests[index];
+
+    if (!test) {
+        alert("Test nahi mila");
+        return;
+    }
+
+    editingPatientTestIndex = index;
+
+    if (getElement("entryTest")) {
+        getElement("entryTest").value = test.testId || "";
+    }
+
+    if (getElement("testPrice")) {
+        getElement("testPrice").value = test.price;
+    }
+
+    if (getElement("commissionPercent")) {
+        getElement("commissionPercent").value = test.percent;
+    }
+
+    const addButton = document.querySelector(".detail-box button");
+    if (addButton) {
+        addButton.textContent = "Update Test";
+    }
+
+    calculateCommission();
+}
 
 function removePatientTest(index) {
     selectedPatientTests.splice(index, 1);
