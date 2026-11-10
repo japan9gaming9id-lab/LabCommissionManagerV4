@@ -738,18 +738,7 @@ function renderSelectedPatientTests() {
         `).join("");
     }
 
-    const totalPrice = selectedPatientTests.reduce(
-        (sum, test) => sum + Number(test.price || 0), 0
-    );
-
-    const totalCommission = selectedPatientTests.reduce(
-        (sum, test) => sum + Number(test.commission || 0), 0
-    );
-
-    setText("patientTestCount", selectedPatientTests.length);
-    setText("patientTotalPrice", money(totalPrice));
-    setText("patientTotalCommission", money(totalCommission));
-}
+    
 
     const totalPrice = selectedPatientTests.reduce(
         (sum, test) => sum + Number(test.price || 0), 0
