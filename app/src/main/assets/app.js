@@ -399,8 +399,7 @@ function render() {
     let totalPrice = entries.reduce((s, e) => s + Number(e.price || 0), 0);
     let totalCommission = entries.reduce((s, e) => s + Number(e.commission || 0), 0);
 
-    document.getElementById("totalPrice").textContent = money(totalPrice);
-    document.getElementById("totalCommission").textContent = money(totalCommission);
+    document.getElementById("totalTests").textContent = entries.length;
 }
 
 // THEME
