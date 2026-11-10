@@ -1,0 +1,115 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 16px;
+    background: #eef2f8;
+    color: #182235;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background: #101827;
+    color: white;
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header small {
+    color: #9db0cc;
+    letter-spacing: 2px;
+}
+
+header h2 {
+    font-size: 20px;
+}
+
+header span {
+    color: #7dd3fc;
+}
+
+nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin: 15px 0;
+}
+
+button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #1769aa;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+nav button {
+    background: #dfe7f1;
+    color: #34445c;
+    white-space: nowrap;
+}
+
+.panel {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 16px;
+    box-shadow: 0 5px 20px #0000000a;
+}
+
+input, select {
+    width: 100%;
+    padding: 13px;
+    margin: 8px 0 14px;
+    border: 1px solid #d7dfeb;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.stats div {
+    background: #edf6ff;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body.dark {
+    background: #0b1220;
+    color: white;
+}
+
+body.dark .panel {
+    background: #172235;
+}
+
+body.dark input,
+body.dark select {
+    background: #0f1a2b;
+    color: white;
+    border-color: #35445a;
+}
+
+body.dark .stats div {
+    background: #203550;
+}
