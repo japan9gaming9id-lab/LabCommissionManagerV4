@@ -1,9 +1,22 @@
+
+// ==========================================
+// LAB COMMISSION MANAGER V4
+// Complete app.js - Multi Test Entry Version
+// ==========================================
+
+// ---------- LOAD DATA ----------
+
 let doctors = JSON.parse(localStorage.getItem("doctors") || "[]");
 let tests = JSON.parse(localStorage.getItem("tests") || "[]");
 let entries = JSON.parse(localStorage.getItem("entries") || "[]");
-let selectedPatientTests = [];
 
+let selectedPatientTests = [];
 let editingDoctorId = null;
+let editingTestId = null;
+let currentDoctorId = null;
+
+
+// ---------- COMMON FUNCTIONS ----------
 
 function saveData() {
     localStorage.setItem("doctors", JSON.stringify(doctors));
@@ -17,7 +30,7 @@ function escapeHTML(value) {
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
-        "'": "&#39;"
+        "'": "&#039;"
     })[char]);
 }
 
@@ -25,40 +38,109 @@ function money(value) {
     return "₹" + Number(value || 0).toFixed(2);
 }
 
-function showTab(id) {
-    document.querySelectorAll(".panel").forEach(p => {
-        p.hidden = true;
-    });
-
-    document.getElementById(id).hidden = false;
-    render();
+function getElement(id) {
+    return document.getElementById(id);
 }
 
-// DOCTOR MANAGEMENT
+function setText(id, value) {
+    const element = getElement(id);
+    if (element) element.textContent = value;
+}
+
+// Older entries used entry.test, entry.price and entry.commission.
+// New entries use entry.tests[].
+function getEntryTests(entry) {
+    if (Array.isArray(entry.tests)) {
+        return entry.tests;
+    }
+
+    if (entry.test) {
+        return [{
+            test: entry.test,
+            price: Number(entry.price || 0),
+            percent: Number(entry.percent || 0),
+            commission: Number(entry.commission || 0)
+        }];
+    }
+
+    return [];
+}
+
+function getEntryTotalPrice(entry) {
+    if (Array.isArray(entry.tests)) {
+        return getEntryTests(entry).reduce(
+            (sum, test) => sum + Number(test.price || 0), 0
+        );
+    }
+
+    return Number(entry.price || 0);
+}
+
+function getEntryTotalCommission(entry) {
+    if (Array.isArray(entry.tests)) {
+        return getEntryTests(entry).reduce(
+            (sum, test) => sum + Number(test.commission || 0), 0
+        );
+    }
+
+    return Number(entry.commission || 0);
+}
+
+
+// ---------- NAVIGATION ----------
+
+function showTab(tabName) {
+    document.querySelectorAll(".panel").forEach(panel => {
+        panel.hidden = true;
+    });
+
+    const selectedPanel = getElement(tabName);
+    if (selectedPanel) selectedPanel.hidden = false;
+
+    document.querySelectorAll(".nav-btn, .nav-item").forEach(button => {
+        button.classList.remove("active");
+    });
+
+    if (tabName === "doctorDetails") {
+        const details = getElement("doctorDetails");
+        if (details) details.hidden = false;
+    }
+
+    if (tabName === "tests") renderTests();
+    if (tabName === "doctors") renderDoctors();
+    if (tabName === "records") renderRecords();
+
+    window.scrollTo(0, 0);
+}
+
+
+// ---------- DOCTOR MANAGEMENT ----------
 
 function addDoctor() {
-    let name = document.getElementById("doctorName").value.trim();
-    let phone = document.getElementById("doctorPhone").value.trim();
+    const nameInput = getElement("doctorName");
+    const phoneInput = getElement("doctorPhone");
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
 
     if (!name) {
-        return alert("Doctor name likhen");
+        alert("Doctor Name likhen");
+        return;
     }
 
     if (editingDoctorId !== null) {
-        let doctor = doctors.find(d => d.id == editingDoctorId);
-
+        const doctor = doctors.find(d => d.id == editingDoctorId);
         if (!doctor) return alert("Doctor nahi mila");
 
         doctor.name = name;
         doctor.phone = phone;
 
-        // Old entries remain unchanged.
-        alert("Doctor Details Updated Successfully!");
+        alert("Doctor Updated Successfully!");
     } else {
         doctors.push({
             id: Date.now(),
-            name: name,
-            phone: phone,
+            name,
+            phone,
             active: true
         });
 
@@ -71,64 +153,76 @@ function addDoctor() {
 }
 
 function editDoctor(id) {
-    let doctor = doctors.find(d => d.id == id);
+    const doctor = doctors.find(d => d.id == id);
     if (!doctor) return;
 
     editingDoctorId = doctor.id;
 
-    document.getElementById("doctorName").value = doctor.name;
-    document.getElementById("doctorPhone").value = doctor.phone || "";
-    document.getElementById("doctorFormTitle").textContent = "Edit Doctor Details";
-    document.getElementById("doctorSaveBtn").textContent = "Update Doctor";
-    document.getElementById("doctorCancelBtn").hidden = false;
+    if (getElement("doctorName")) {
+        getElement("doctorName").value = doctor.name || "";
+    }
 
-    showTab("doctors");
-    document.getElementById("doctorName").focus();
+    if (getElement("doctorPhone")) {
+        getElement("doctorPhone").value = doctor.phone || "";
+    }
+
+    setText("doctorFormTitle", "Edit Doctor");
+    setText("doctorSaveBtn", "Update Doctor");
+
+    if (getElement("doctorCancelBtn")) {
+        getElement("doctorCancelBtn").hidden = false;
+    }
 }
 
 function cancelDoctorEdit() {
     editingDoctorId = null;
 
-    document.getElementById("doctorName").value = "";
-    document.getElementById("doctorPhone").value = "";
-    document.getElementById("doctorFormTitle").textContent = "Add New Doctor";
-    document.getElementById("doctorSaveBtn").textContent = "Add Doctor";
-    document.getElementById("doctorCancelBtn").hidden = true;
+    if (getElement("doctorName")) getElement("doctorName").value = "";
+    if (getElement("doctorPhone")) getElement("doctorPhone").value = "";
+
+    setText("doctorFormTitle", "Add New Doctor");
+    setText("doctorSaveBtn", "Add Doctor");
+
+    if (getElement("doctorCancelBtn")) {
+        getElement("doctorCancelBtn").hidden = true;
+    }
 }
 
 function toggleDoctorStatus(id) {
-    let doctor = doctors.find(d => d.id == id);
+    const doctor = doctors.find(d => d.id == id);
     if (!doctor) return;
 
-    let currentlyActive = doctor.active !== false;
-
-    if (currentlyActive) {
-        if (!confirm("Is Doctor ko Inactive karna chahte hain? Purane records safe rahenge.")) return;
+    if (doctor.active !== false) {
+        if (!confirm("Is Doctor ko Inactive karna chahte hain? Purane records safe rahenge.")) {
+            return;
+        }
         doctor.active = false;
     } else {
-        if (!confirm("Is Doctor ko dobara Active karna chahte hain?")) return;
+        if (!confirm("Is Doctor ko dobara Active karna chahte hain?")) {
+            return;
+        }
         doctor.active = true;
     }
 
     saveData();
     render();
 
-    if (!doctor.active) {
-        alert("Doctor Inactive ho gaya. Purane records safe hain.");
-    } else {
-        alert("Doctor Active ho gaya.");
-    }
+    alert(doctor.active === false
+        ? "Doctor Inactive ho gaya."
+        : "Doctor Active ho gaya.");
 }
 
 function renderDoctors() {
-    let search = (document.getElementById("doctorSearch")?.value || "")
-        .trim().toLowerCase();
+    const list = getElement("doctorList");
+    if (!list) return;
 
-    let list = document.getElementById("doctorList");
+    const search = (
+        getElement("doctorSearch")?.value || ""
+    ).trim().toLowerCase();
 
-    let filtered = doctors.filter(d =>
-        String(d.name || "").toLowerCase().includes(search) ||
-        String(d.phone || "").toLowerCase().includes(search)
+    const filtered = doctors.filter(doctor =>
+        String(doctor.name || "").toLowerCase().includes(search) ||
+        String(doctor.phone || "").toLowerCase().includes(search)
     );
 
     if (filtered.length === 0) {
@@ -136,29 +230,30 @@ function renderDoctors() {
         return;
     }
 
-    list.innerHTML = filtered.map(d => {
-        let active = d.active !== false;
+    list.innerHTML = filtered.map(doctor => {
+        const active = doctor.active !== false;
 
         return `
             <div class="doctor-card">
-                <h3>${escapeHTML(d.name)}</h3>
-                <p>Phone: ${escapeHTML(d.phone || "Not Available")}</p>
+                <h3>${escapeHTML(doctor.name)}</h3>
+                <p>${escapeHTML(doctor.phone || "Phone not added")}</p>
 
                 <span class="doctor-status ${active ? "" : "inactive"}">
                     ${active ? "ACTIVE" : "INACTIVE"}
                 </span>
 
                 <div class="doctor-actions">
-                    <button onclick="showDoctorDetails(${Number(d.id)})">
-                        Details
+                    <button onclick="showDoctorDetails(${Number(doctor.id)})">
+                        View Details
                     </button>
 
-                    <button class="btn-edit" onclick="editDoctor(${Number(d.id)})">
+                    <button class="btn-edit"
+                        onclick="editDoctor(${Number(doctor.id)})">
                         Edit
                     </button>
 
                     <button class="${active ? "btn-inactive" : "btn-status"}"
-                        onclick="toggleDoctorStatus(${Number(d.id)})">
+                        onclick="toggleDoctorStatus(${Number(doctor.id)})">
                         ${active ? "Deactivate" : "Activate"}
                     </button>
                 </div>
@@ -167,163 +262,420 @@ function renderDoctors() {
     }).join("");
 }
 
-// DOCTOR FULL DETAILS
-
 function showDoctorDetails(id) {
-    let doctor = doctors.find(d => d.id == id);
+    const doctor = doctors.find(d => d.id == id);
     if (!doctor) return;
 
-    document.querySelectorAll(".panel").forEach(p => {
-        p.hidden = true;
-    });
+    currentDoctorId = doctor.id;
 
-    document.getElementById("doctorDetails").hidden = false;
-
-    renderDoctorDetails(id);
+    showTab("doctorDetails");
+    renderDoctorDetails();
 }
 
-function renderDoctorDetails(id) {
-    let doctor = doctors.find(d => d.id == id);
-    if (!doctor) return;
+function renderDoctorDetails() {
+    const doctor = doctors.find(d => d.id == currentDoctorId);
+    const container = getElement("doctorDetailsContent");
 
-    let doctorEntries = entries.filter(e =>
-        e.doctorId != null
-            ? e.doctorId == doctor.id
-            : e.doctor === doctor.name
+    if (!doctor || !container) return;
+
+    const doctorEntries = entries.filter(entry =>
+        entry.doctorId == doctor.id ||
+        (
+            entry.doctorId == null &&
+            entry.doctor === doctor.name
+        )
     );
 
-    let totalPatients = new Set(
-        doctorEntries.map(e => String(e.patient || "").trim().toLowerCase())
-    ).size;
+    let totalTests = 0;
+    let totalPrice = 0;
+    let totalCommission = 0;
 
-    let totalPrice = doctorEntries.reduce(
-        (sum, e) => sum + Number(e.price || 0), 0
-    );
+    doctorEntries.forEach(entry => {
+        const entryTests = getEntryTests(entry);
+        totalTests += entryTests.length;
 
-    let totalCommission = doctorEntries.reduce(
-        (sum, e) => sum + Number(e.commission || 0), 0
-    );
+        entryTests.forEach(test => {
+            totalPrice += Number(test.price || 0);
+            totalCommission += Number(test.commission || 0);
+        });
+    });
 
-    let totalTests = doctorEntries.length;
-    let active = doctor.active !== false;
+    container.innerHTML = `
+        <div class="doctor-card">
+            <h2>${escapeHTML(doctor.name)}</h2>
+            <p>Phone: ${escapeHTML(doctor.phone || "Not added")}</p>
+            <p>Status: ${doctor.active === false ? "INACTIVE" : "ACTIVE"}</p>
 
-    let history = [...doctorEntries].sort((a, b) =>
-        String(b.date || "").localeCompare(String(a.date || ""))
-    );
-
-    document.getElementById("doctorDetailsContent").innerHTML = `
-        <h2>${escapeHTML(doctor.name)}</h2>
-
-        <div class="detail-box">
-            <p><strong>Doctor Name:</strong> ${escapeHTML(doctor.name)}</p>
-            <p><strong>Phone:</strong> ${escapeHTML(doctor.phone || "Not Available")}</p>
-            <p><strong>Status:</strong>
-                <span class="doctor-status ${active ? "" : "inactive"}">
-                    ${active ? "ACTIVE" : "INACTIVE"}
-                </span>
-            </p>
-            <p><strong>Total Patients:</strong> ${totalPatients}</p>
-            <p><strong>Total Tests:</strong> ${totalTests}</p>
+            <div class="stats-grid">
+                <div>
+                    <h3>${totalTests}</h3>
+                    <p>Total Tests</p>
+                </div>
+                <div>
+                    <h3>${money(totalPrice)}</h3>
+                    <p>Total Test Price</p>
+                </div>
+                <div>
+                    <h3>${money(totalCommission)}</h3>
+                    <p>Total Commission</p>
+                </div>
+            </div>
         </div>
 
-        <h3>Financial Summary</h3>
+        <h3>Complete History</h3>
 
-        <div class="detail-stat">
-            <strong>Total Test Price</strong>
-            <h2>${money(totalPrice)}</h2>
-        </div>
+        ${
+            doctorEntries.length === 0
+            ? '<div class="doctor-empty">Abhi koi record nahi hai</div>'
+            : doctorEntries.slice().reverse().map(entry => `
+                <div class="doctor-card">
+                    <h3>${escapeHTML(entry.patient || "Patient")}</h3>
+                    <p>Date: ${escapeHTML(entry.date || "-")}</p>
 
-        <div class="detail-stat">
-            <strong>Total Commission</strong>
-            <h2>${money(totalCommission)}</h2>
-        </div>
+                    ${getEntryTests(entry).map(test => `
+                        <div class="history-test">
+                            <p><strong>${escapeHTML(test.test || "Test")}</strong></p>
+                            <p>Price: ${money(test.price)}</p>
+                            <p>Commission: ${Number(test.percent || 0)}%</p>
+                            <p>Commission Amount: ${money(test.commission)}</p>
+                        </div>
+                    `).join("")}
 
-        <h3>Complete Entry History</h3>
-
-        <div id="doctorHistory">
-            ${history.length === 0
-                ? '<p class="doctor-empty">Abhi koi Entry available nahi hai.</p>'
-                : history.map(e => `
-                    <div class="detail-entry">
-                        <strong>${escapeHTML(e.patient)}</strong>
-                        <p>Date: ${escapeHTML(e.date)}</p>
-                        <p>Test: ${escapeHTML(e.test)}</p>
-                        <p>Test Price: ${money(e.price)}</p>
-                        <p>Commission: ${Number(e.percent || 0)}% — ${money(e.commission)}</p>
-                    </div>
-                `).join("")
-            }
-        </div>
+                    <p><strong>Total: ${money(getEntryTotalPrice(entry))}</strong></p>
+                    <p><strong>Commission: ${money(getEntryTotalCommission(entry))}</strong></p>
+                </div>
+            `).join("")
+        }
     `;
 }
 
-// TEST MANAGEMENT
+
+// ---------- TEST MANAGEMENT ----------
 
 function addTest() {
-    let name = document.getElementById("testName").value.trim();
-    let percent = Number(document.getElementById("testPercent").value);
+    const name = (getElement("testName")?.value || "").trim();
+    const percentValue = getElement("testPercent")?.value ?? "";
+    const percent = Number(percentValue);
 
-    if (!name || percent < 0 || percent > 100) {
-        return alert("Sahi Test Name aur Commission % likhen");
+    if (
+        !name ||
+        percentValue === "" ||
+        !Number.isFinite(percent) ||
+        percent < 0 ||
+        percent > 100
+    ) {
+        alert("Sahi Test Name aur Commission % likhen");
+        return;
     }
 
-    tests.push({
-        id: Date.now(),
-        name,
-        percent
-    });
+    if (editingTestId !== null) {
+        const test = tests.find(t => t.id == editingTestId);
+        if (!test) return alert("Test nahi mila");
+
+        test.name = name;
+        test.percent = percent;
+
+        alert("Test Updated Successfully!");
+    } else {
+        tests.push({
+            id: Date.now(),
+            name,
+            percent,
+            active: true
+        });
+
+        alert("Test Added Successfully!");
+    }
 
     saveData();
-
-    document.getElementById("testName").value = "";
+    cancelTestEdit();
     render();
 }
 
-// COMMISSION CALCULATION
+function editTest(id) {
+    const test = tests.find(t => t.id == id);
+    if (!test) return;
 
-function calculateCommission() {
-    let price = Number(document.getElementById("testPrice").value || 0);
-    let percent = Number(document.getElementById("commissionPercent").value || 0);
+    editingTestId = test.id;
 
-    document.getElementById("commissionValue").textContent =
-        money(price * percent / 100);
+    if (getElement("testName")) {
+        getElement("testName").value = test.name || "";
+    }
+
+    if (getElement("testPercent")) {
+        getElement("testPercent").value = test.percent ?? 50;
+    }
+
+    setText("testFormTitle", "Edit Test");
+    setText("testSaveBtn", "Update Test");
+
+    if (getElement("testCancelBtn")) {
+        getElement("testCancelBtn").hidden = false;
+    }
 }
 
-document.getElementById("testPrice").addEventListener("input", calculateCommission);
+function cancelTestEdit() {
+    editingTestId = null;
 
-document.getElementById("commissionPercent").addEventListener("input", calculateCommission);
+    if (getElement("testName")) getElement("testName").value = "";
+    if (getElement("testPercent")) getElement("testPercent").value = 50;
 
-document.getElementById("entryTest").addEventListener("change", function() {
-    let test = tests.find(t => t.id == this.value);
+    setText("testFormTitle", "Add New Test");
+    setText("testSaveBtn", "Add Test");
 
-    if (test) {
-        document.getElementById("commissionPercent").value = test.percent;
-        calculateCommission();
+    if (getElement("testCancelBtn")) {
+        getElement("testCancelBtn").hidden = true;
     }
-});
+}
 
-// SAVE NEW ENTRY
+function toggleTestStatus(id) {
+    const test = tests.find(t => t.id == id);
+    if (!test) return;
+
+    if (test.active !== false) {
+        if (!confirm("Is Test ko Inactive karna chahte hain? Purane records safe rahenge.")) {
+            return;
+        }
+        test.active = false;
+    } else {
+        if (!confirm("Is Test ko dobara Active karna chahte hain?")) {
+            return;
+        }
+        test.active = true;
+    }
+
+    saveData();
+    render();
+
+    alert(test.active === false
+        ? "Test Inactive ho gaya."
+        : "Test Active ho gaya.");
+}
+
+function renderTests() {
+    const list = getElement("testList");
+    if (!list) return;
+
+    const search = (
+        getElement("testSearch")?.value || ""
+    ).trim().toLowerCase();
+
+    const filtered = tests.filter(test =>
+        String(test.name || "").toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="doctor-empty">Koi Test nahi mila</div>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(test => {
+        const active = test.active !== false;
+
+        return `
+            <div class="doctor-card">
+                <h3>${escapeHTML(test.name)}</h3>
+                <p>Default Commission: ${Number(test.percent || 0)}%</p>
+
+                <span class="doctor-status ${active ? "" : "inactive"}">
+                    ${active ? "ACTIVE" : "INACTIVE"}
+                </span>
+
+                <div class="doctor-actions">
+                    <button class="btn-edit"
+                        onclick="editTest(${Number(test.id)})">
+                        Edit
+                    </button>
+
+                    <button class="${active ? "btn-inactive" : "btn-status"}"
+                        onclick="toggleTestStatus(${Number(test.id)})">
+                        ${active ? "Deactivate" : "Activate"}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+
+// ---------- COMMISSION CALCULATION ----------
+
+function calculateCommission() {
+    const price = Number(getElement("testPrice")?.value || 0);
+    const percent = Number(getElement("commissionPercent")?.value || 0);
+
+    const commission = price * percent / 100;
+
+    setText("commissionValue", money(commission));
+}
+
+if (getElement("testPrice")) {
+    getElement("testPrice").addEventListener("input", calculateCommission);
+}
+
+if (getElement("commissionPercent")) {
+    getElement("commissionPercent").addEventListener("input", calculateCommission);
+}
+
+if (getElement("entryTest")) {
+    getElement("entryTest").addEventListener("change", function () {
+        const test = tests.find(t => t.id == this.value);
+
+        if (test) {
+            if (getElement("commissionPercent")) {
+                getElement("commissionPercent").value = test.percent ?? 0;
+            }
+            calculateCommission();
+        }
+    });
+}
+
+
+// ---------- MULTI TEST ENTRY ----------
+
+function addTestToPatient() {
+    const testId = getElement("entryTest")?.value;
+    const priceValue = getElement("testPrice")?.value ?? "";
+    const price = Number(priceValue);
+
+    const percentValue = getElement("commissionPercent")?.value ?? "";
+    const percent = Number(percentValue);
+
+    if (!testId) {
+        alert("Pehle Test Select Karen");
+        return;
+    }
+
+    const test = tests.find(t =>
+        t.id == testId && t.active !== false
+    );
+
+    if (!test) {
+        alert("Ye Test available nahi hai");
+        return;
+    }
+
+    if (
+        priceValue === "" ||
+        !Number.isFinite(price) ||
+        price < 0 ||
+        percentValue === "" ||
+        !Number.isFinite(percent) ||
+        percent < 0 ||
+        percent > 100
+    ) {
+        alert("Sahi Price aur Commission % likhen");
+        return;
+    }
+
+    selectedPatientTests.push({
+        testId: test.id,
+        test: test.name,
+        price,
+        percent,
+        commission: price * percent / 100
+    });
+
+    renderSelectedPatientTests();
+
+    if (getElement("entryTest")) getElement("entryTest").value = "";
+    if (getElement("testPrice")) getElement("testPrice").value = "";
+    if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
+    calculateCommission();
+}
+
+function removePatientTest(index) {
+    selectedPatientTests.splice(index, 1);
+    renderSelectedPatientTests();
+}
+
+function renderSelectedPatientTests() {
+    const list = getElement("selectedTestsList");
+    if (!list) return;
+
+    if (selectedPatientTests.length === 0) {
+        list.innerHTML = '<div class="doctor-empty">Abhi koi Test add nahi hua</div>';
+    } else {
+        list.innerHTML = selectedPatientTests.map((test, index) => `
+            <div class="doctor-card">
+                <h3>${escapeHTML(test.test)}</h3>
+                <p>Price: ${money(test.price)}</p>
+                <p>Commission: ${Number(test.percent)}%</p>
+                <p>Commission Amount: ${money(test.commission)}</p>
+
+                <button class="btn-inactive"
+                    onclick="removePatientTest(${index})">
+                    Remove
+                </button>
+            </div>
+        `).join("");
+    }
+
+    const totalPrice = selectedPatientTests.reduce(
+        (sum, test) => sum + Number(test.price || 0), 0
+    );
+
+    const totalCommission = selectedPatientTests.reduce(
+        (sum, test) => sum + Number(test.commission || 0), 0
+    );
+
+    setText("patientTestCount", selectedPatientTests.length);
+    setText("patientTotalPrice", money(totalPrice));
+    setText("patientTotalCommission", money(totalCommission));
+}
+
+
+// ---------- SAVE NEW ENTRY ----------
 
 function saveEntry() {
-    let date = document.getElementById("entryDate").value;
-    let patient = document.getElementById("patientName").value.trim();
+    const date = getElement("entryDate")?.value || "";
+    const patient = (getElement("patientName")?.value || "").trim();
+    const doctorId = getElement("entryDoctor")?.value;
 
-    let doctor = doctors.find(d =>
-        d.id == document.getElementById("entryDoctor").value &&
-        d.active !== false
-    );
-
-    let test = tests.find(t =>
-        t.id == document.getElementById("entryTest").value
-    );
-
-    let price = Number(document.getElementById("testPrice").value);
-    let percent = Number(document.getElementById("commissionPercent").value);
-
-    if (!date || !patient || !doctor || !test ||
-        price <= 0 || percent < 0 || percent > 100) {
-        return alert("Sabhi details sahi se bharen");
+    if (!date) {
+        alert("Date Select Karen");
+        return;
     }
+
+    if (!patient) {
+        alert("Patient Name likhna zaroori hai");
+        return;
+    }
+
+    if (!doctorId) {
+        alert("Doctor Select Karen");
+        return;
+    }
+
+    if (selectedPatientTests.length === 0) {
+        alert("Kam se kam ek Test add Karen");
+        return;
+    }
+
+    const doctor = doctors.find(d =>
+        d.id == doctorId && d.active !== false
+    );
+
+    if (!doctor) {
+        alert("Selected Doctor available nahi hai");
+        return;
+    }
+
+    const savedTests = selectedPatientTests.map(test => ({
+        testId: test.testId,
+        test: test.test,
+        price: Number(test.price),
+        percent: Number(test.percent),
+        commission: Number(test.commission)
+    }));
+
+    const totalPrice = savedTests.reduce(
+        (sum, test) => sum + test.price, 0
+    );
+
+    const totalCommission = savedTests.reduce(
+        (sum, test) => sum + test.commission, 0
+    );
 
     entries.push({
         id: Date.now(),
@@ -331,89 +683,177 @@ function saveEntry() {
         patient,
         doctorId: doctor.id,
         doctor: doctor.name,
-        test: test.name,
-        price,
-        percent,
-        commission: price * percent / 100
+        tests: savedTests,
+        totalPrice,
+        totalCommission
     });
 
     saveData();
 
-    alert("Entry Saved Successfully!");
+    selectedPatientTests = [];
+    renderSelectedPatientTests();
 
-    document.getElementById("patientName").value = "";
-    document.getElementById("testPrice").value = "";
+    if (getElement("patientName")) getElement("patientName").value = "";
+    if (getElement("entryTest")) getElement("entryTest").value = "";
+    if (getElement("testPrice")) getElement("testPrice").value = "";
+    if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
 
     calculateCommission();
     render();
+
+    alert("Entry Successfully Saved!");
 }
 
-// RENDER ALL DATA
+// ---------- RECORDS ----------
+
+function renderRecords() {
+    const list = getElement("recordList");
+    if (!list) return;
+
+    if (entries.length === 0) {
+        list.innerHTML = '<div class="doctor-empty">Abhi koi Record nahi hai</div>';
+        return;
+    }
+
+    const sortedEntries = entries.slice().reverse();
+
+    list.innerHTML = sortedEntries.map((entry, index) => `
+        <div class="doctor-card">
+            <h3>${escapeHTML(entry.patient || "Patient")}</h3>
+            <p>Date: ${escapeHTML(entry.date || "-")}</p>
+            <p>Doctor: ${escapeHTML(entry.doctor || "-")}</p>
+
+            <h4>Tests</h4>
+
+            ${getEntryTests(entry).map((test, testIndex) => `
+                <div class="history-test">
+                    <p><strong>${testIndex + 1}. ${escapeHTML(test.test || "Test")}</strong></p>
+                    <p>Price: ${money(test.price)}</p>
+                    <p>Commission: ${Number(test.percent || 0)}%</p>
+                    <p>Commission Amount: ${money(test.commission)}</p>
+                </div>
+            `).join("")}
+
+            <p><strong>Total Tests: ${getEntryTests(entry).length}</strong></p>
+            <p><strong>Total Price: ${money(getEntryTotalPrice(entry))}</strong></p>
+            <p><strong>Total Commission: ${money(getEntryTotalCommission(entry))}</strong></p>
+        </div>
+    `).join("");
+}
+
+// ---------- MAIN RENDER ----------
 
 function render() {
     renderDoctors();
+    renderTests();
+    renderRecords();
 
-    document.getElementById("testList").innerHTML =
-        tests.map(t =>
-            `<p>${escapeHTML(t.name)} - ${Number(t.percent)}%</p>`
-        ).join("");
+    // Active doctors only in New Entry
+    const doctorSelect = getElement("entryDoctor");
 
-    let activeDoctors = doctors.filter(d => d.active !== false);
-    let doctorSelect = document.getElementById("entryDoctor");
-    let selectedDoctor = doctorSelect.value;
+    if (doctorSelect) {
+        const currentValue = doctorSelect.value;
 
-    doctorSelect.innerHTML =
-        '<option value="">Select Doctor</option>' +
-        activeDoctors.map(d =>
-            `<option value="${Number(d.id)}">${escapeHTML(d.name)}</option>`
-        ).join("");
+        const activeDoctors = doctors.filter(d => d.active !== false);
 
-    if (activeDoctors.some(d => String(d.id) === selectedDoctor)) {
-        doctorSelect.value = selectedDoctor;
+        doctorSelect.innerHTML =
+            '<option value="">Select Doctor</option>' +
+            activeDoctors.map(doctor => `
+                <option value="${escapeHTML(doctor.id)}">
+                    ${escapeHTML(doctor.name)}
+                </option>
+            `).join("");
+
+        if (activeDoctors.some(d => String(d.id) === currentValue)) {
+            doctorSelect.value = currentValue;
+        }
     }
 
-    let testSelect = document.getElementById("entryTest");
-    let selectedTest = testSelect.value;
+    // Active tests only in New Entry
+    const testSelect = getElement("entryTest");
 
-    testSelect.innerHTML =
-        '<option value="">Select Test</option>' +
-        tests.map(t =>
-            `<option value="${Number(t.id)}">${escapeHTML(t.name)}</option>`
-        ).join("");
+    if (testSelect) {
+        const currentValue = testSelect.value;
 
-    if (tests.some(t => String(t.id) === selectedTest)) {
-        testSelect.value = selectedTest;
+        const activeTests = tests.filter(t => t.active !== false);
+
+        testSelect.innerHTML =
+            '<option value="">Select Test</option>' +
+            activeTests.map(test => `
+                <option value="${escapeHTML(test.id)}">
+                    ${escapeHTML(test.name)}
+                </option>
+            `).join("");
+
+        if (activeTests.some(t => String(t.id) === currentValue)) {
+            testSelect.value = currentValue;
+        }
     }
 
-    document.getElementById("recordList").innerHTML =
-    entries.map((e, index) => `
-        <div class="detail-entry">
-            <strong>${index + 1}. ${escapeHTML(e.patient)}</strong>
-            <p>Date: ${escapeHTML(e.date)}</p>
-            <p>Doctor: ${escapeHTML(e.doctor)}</p>
-            <p>Test: ${escapeHTML(e.test)}</p>
-            <p>Test Price: ${money(e.price)}</p>
-            <p>Commission: ${money(e.commission)}</p>
-        </div>
-    `).join("");
+    // Dashboard totals count individual tests
+    let totalTests = 0;
+    let totalPrice = 0;
+    let totalCommission = 0;
 
-    let totalPrice = entries.reduce((s, e) => s + Number(e.price || 0), 0);
-let totalCommission = entries.reduce((s, e) => s + Number(e.commission || 0), 0);
+    entries.forEach(entry => {
+        const entryTests = getEntryTests(entry);
 
-document.getElementById("totalTests").textContent = entries.length;
-document.getElementById("totalPrice").textContent = money(totalPrice);
-document.getElementById("totalCommission").textContent = money(totalCommission);
+        totalTests += entryTests.length;
+
+        entryTests.forEach(test => {
+            totalPrice += Number(test.price || 0);
+            totalCommission += Number(test.commission || 0);
+        });
+    });
+
+    setText("totalTests", totalTests);
+    setText("totalPrice", money(totalPrice));
+    setText("totalCommission", money(totalCommission));
+
+    if (currentDoctorId !== null) {
+        renderDoctorDetails();
+    }
 }
 
-// THEME
 
-document.getElementById("themeBtn").onclick = function() {
-    document.body.classList.toggle("dark");
-};
+// ---------- THEME ----------
 
-// DEFAULT DATE
+if (getElement("themeBtn")) {
+    getElement("themeBtn").addEventListener("click", function () {
+        document.body.classList.toggle("dark");
 
-document.getElementById("entryDate").value =
-    new Date().toISOString().slice(0, 10);
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+}
 
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+}
+
+
+// ---------- SEARCH EVENTS ----------
+
+if (getElement("doctorSearch")) {
+    getElement("doctorSearch").addEventListener("input", renderDoctors);
+}
+
+if (getElement("testSearch")) {
+    getElement("testSearch").addEventListener("input", renderTests);
+}
+
+
+// ---------- INITIAL SETUP ----------
+
+// Default entry date = today
+if (getElement("entryDate") && !getElement("entryDate").value) {
+    const today = new Date();
+    const localDate = new Date(
+        today.getTime() - today.getTimezoneOffset() * 60000
+    ).toISOString().split("T")[0];
+
+    getElement("entryDate").value = localDate;
+}
+
+// Initial screen render
 render();
