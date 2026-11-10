@@ -854,6 +854,52 @@ function editEntry(id) {
     showTab("entry");
 }
 
+// ---------- CANCEL ENTRY EDIT ----------
+
+function cancelEntryEdit() {
+    editingEntryId = null;
+    selectedPatientTests = [];
+
+    if (getElement("entryDate")) {
+        getElement("entryDate").value = "";
+    }
+
+    if (getElement("patientName")) {
+        getElement("patientName").value = "";
+    }
+
+    if (getElement("patientAge")) {
+        getElement("patientAge").value = "";
+    }
+
+    if (getElement("entryDoctor")) {
+        getElement("entryDoctor").value = "";
+    }
+
+    if (getElement("entryTest")) {
+        getElement("entryTest").value = "";
+    }
+
+    if (getElement("testPrice")) {
+        getElement("testPrice").value = "";
+    }
+
+    if (getElement("commissionPercent")) {
+        getElement("commissionPercent").value = "";
+    }
+
+    setText("entryFormTitle", "New Patient Entry");
+    setText("entrySaveBtn", "Save Patient Entry");
+
+    if (getElement("entryCancelEditBtn")) {
+        getElement("entryCancelEditBtn").hidden = true;
+    }
+
+    renderSelectedPatientTests();
+    calculateCommission();
+    showTab("records");
+}
+
 // ---------- RECORDS ----------
 function deleteEntry(id) {
     const entry = entries.find(e => e.id == id);
