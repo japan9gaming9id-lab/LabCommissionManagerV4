@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,10 +28,10 @@
 <section id="home" class="panel">
     <h2>Dashboard</h2>
     <div class="stats">
-    <div>Total Tests <h2 id="totalTests">0</h2></div>
-    <div>Total Test Price <h2 id="totalPrice">₹0</h2></div>
-    <div>Total Commission <h2 id="totalCommission">₹0</h2></div>
-</div>
+        <div>Total Tests <h2 id="totalTests">0</h2></div>
+        <div>Total Test Price <h2 id="totalPrice">₹0</h2></div>
+        <div>Total Commission <h2 id="totalCommission">₹0</h2></div>
+    </div>
     <p>Welcome to Lab Commission Manager V4</p>
 </section>
 
@@ -52,9 +53,7 @@
 
     <div class="doctor-search">
         <h3>All Doctors</h3>
-        <input
-            id="doctorSearch"
-            type="search"
+        <input id="doctorSearch" type="search"
             placeholder="Search by doctor name or phone"
             oninput="renderDoctors()">
     </div>
@@ -67,7 +66,6 @@
     <div id="doctorDetailsContent"></div>
 </section>
 
-
 <section id="tests" class="panel" hidden>
     <h2>Test Management</h2>
 
@@ -77,8 +75,13 @@
         <label>Test Name</label>
         <input id="testName" placeholder="Enter Test Name">
 
+        <label>Default Test Price (₹)</label>
+        <input id="testDefaultPrice" type="number" min="0"
+            placeholder="Enter Default Test Price">
+
         <label>Default Commission %</label>
-        <input id="testPercent" type="number" value="50" min="0" max="100" placeholder="Commission %">
+        <input id="testPercent" type="number" value="50"
+            min="0" max="100" placeholder="Commission %">
 
         <button id="testSaveBtn" onclick="addTest()">Add Test</button>
         <button id="testCancelBtn" onclick="cancelTestEdit()" hidden>Cancel</button>
@@ -86,23 +89,26 @@
 
     <div class="doctor-search">
         <h3>Search Tests</h3>
-        <input id="testSearch" placeholder="Search Test Name..." oninput="renderTests()">
+        <input id="testSearch" placeholder="Search Test Name..."
+            oninput="renderTests()">
     </div>
 
     <h3>All Tests</h3>
     <div id="testList"></div>
 </section>
 
-
-
 <section id="entry" class="panel" hidden>
-    <h2>New Patient Entry</h2>
+    <h2 id="entryFormTitle">New Patient Entry</h2>
 
     <label>Date</label>
     <input type="date" id="entryDate">
 
     <label>Patient Name</label>
     <input id="patientName" placeholder="Patient Name">
+
+    <label>Patient Age</label>
+    <input id="patientAge" type="text"
+        placeholder="Example: 25 Years or 8 Months">
 
     <label>Doctor Name</label>
     <select id="entryDoctor"></select>
@@ -114,10 +120,12 @@
         <select id="entryTest"></select>
 
         <label>Test Price (₹)</label>
-        <input type="number" id="testPrice" placeholder="Enter Test Price">
+        <input type="number" id="testPrice"
+            min="0" placeholder="Default price will appear automatically">
 
         <label>Commission %</label>
-        <input type="number" id="commissionPercent" value="50" min="0" max="100">
+        <input type="number" id="commissionPercent"
+            value="50" min="0" max="100">
 
         <p>Commission: <strong id="commissionValue">₹0.00</strong></p>
 
@@ -137,12 +145,17 @@
         <p>Total Commission: <strong id="patientTotalCommission">₹0.00</strong></p>
     </div>
 
-    <button type="button" onclick="saveEntry()">
+    <button type="button" id="entrySaveBtn" onclick="saveEntry()">
         Save Patient Entry
+    </button>
+
+    <button type="button" id="entryCancelEditBtn"
+        onclick="cancelEntryEdit()" hidden>
+        Cancel Edit
     </button>
 </section>
 
-    <section id="records" class="panel" hidden>
+<section id="records" class="panel" hidden>
     <h2>Records</h2>
     <div id="recordList"></div>
 </section>
