@@ -94,8 +94,9 @@
 </section>
 
 
+
 <section id="entry" class="panel" hidden>
-    <h2>New Entry</h2>
+    <h2>New Patient Entry</h2>
 
     <label>Date</label>
     <input type="date" id="entryDate">
@@ -106,20 +107,42 @@
     <label>Doctor Name</label>
     <select id="entryDoctor"></select>
 
-    <label>Test Name</label>
-    <select id="entryTest"></select>
+    <div class="detail-box">
+        <h3>Add Tests</h3>
 
-    <label>Test Price</label>
-    <input type="number" id="testPrice" placeholder="Test Price">
+        <label>Test Name</label>
+        <select id="entryTest"></select>
 
-    <label>Commission %</label>
-    <input type="number" id="commissionPercent" value="50">
+        <label>Test Price (₹)</label>
+        <input type="number" id="testPrice" placeholder="Enter Test Price">
 
-    <h3>Commission: <span id="commissionValue">₹0</span></h3>
-    <button onclick="saveEntry()">Save Entry</button>
+        <label>Commission %</label>
+        <input type="number" id="commissionPercent" value="50" min="0" max="100">
+
+        <p>Commission: <strong id="commissionValue">₹0.00</strong></p>
+
+        <button type="button" onclick="addTestToPatient()">
+            + Add Test
+        </button>
+    </div>
+
+    <h3>Selected Tests</h3>
+    <div id="selectedTestsList">
+        <p class="doctor-empty">Abhi koi Test add nahi hua hai.</p>
+    </div>
+
+    <div class="detail-stat">
+        <p>Total Tests: <strong id="patientTestCount">0</strong></p>
+        <p>Total Test Price: <strong id="patientTotalPrice">₹0.00</strong></p>
+        <p>Total Commission: <strong id="patientTotalCommission">₹0.00</strong></p>
+    </div>
+
+    <button type="button" onclick="saveEntry()">
+        Save Patient Entry
+    </button>
 </section>
 
-<section id="records" class="panel" hidden>
+    <section id="records" class="panel" hidden>
     <h2>Records</h2>
     <div id="recordList"></div>
 </section>
