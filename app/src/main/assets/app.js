@@ -798,7 +798,7 @@ function render() {
     entries.forEach(entry => {
         const entryTests = getEntryTests(entry);
 
-        totalTests += entryTests.length;
+        totalTests += 1;
 
         entryTests.forEach(test => {
             totalPrice += Number(test.price || 0);
