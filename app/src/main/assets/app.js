@@ -956,7 +956,8 @@ function editEntry(id) {
 
 function cancelEntryEdit() {
     editingEntryId = null;
-    selectedPatientTests = [];
+editingPatientTestIndex = null;
+selectedPatientTests = [];
 
     if (getElement("entryDate")) {
         getElement("entryDate").value = "";
