@@ -674,6 +674,11 @@ function renderSelectedPatientTests() {
                 <p>Commission: ${Number(test.percent)}%</p>
                 <p>Commission Amount: ${money(test.commission)}</p>
 
+                <button class="btn-edit"
+                    onclick="editPatientTest(${index})">
+                    Edit
+                </button>
+
                 <button class="btn-inactive"
                     onclick="removePatientTest(${index})">
                     Remove
@@ -681,6 +686,19 @@ function renderSelectedPatientTests() {
             </div>
         `).join("");
     }
+
+    const totalPrice = selectedPatientTests.reduce(
+        (sum, test) => sum + Number(test.price || 0), 0
+    );
+
+    const totalCommission = selectedPatientTests.reduce(
+        (sum, test) => sum + Number(test.commission || 0), 0
+    );
+
+    setText("patientTestCount", selectedPatientTests.length);
+    setText("patientTotalPrice", money(totalPrice));
+    setText("patientTotalCommission", money(totalCommission));
+}
 
     const totalPrice = selectedPatientTests.reduce(
         (sum, test) => sum + Number(test.price || 0), 0
