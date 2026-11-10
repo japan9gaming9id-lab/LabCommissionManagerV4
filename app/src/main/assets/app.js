@@ -667,11 +667,13 @@ function renderSelectedPatientTests() {
 }
 
 
+
 // ---------- SAVE NEW ENTRY ----------
 
 function saveEntry() {
     const date = getElement("entryDate")?.value || "";
     const patient = (getElement("patientName")?.value || "").trim();
+    const age = (getElement("patientAge")?.value || "").trim();
     const doctorId = getElement("entryDoctor")?.value;
 
     if (!date) {
@@ -723,6 +725,7 @@ function saveEntry() {
         id: Date.now(),
         date,
         patient,
+        age,
         doctorId: doctor.id,
         doctor: doctor.name,
         tests: savedTests,
@@ -736,6 +739,7 @@ function saveEntry() {
     renderSelectedPatientTests();
 
     if (getElement("patientName")) getElement("patientName").value = "";
+    if (getElement("patientAge")) getElement("patientAge").value = "";
     if (getElement("entryTest")) getElement("entryTest").value = "";
     if (getElement("testPrice")) getElement("testPrice").value = "";
     if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
@@ -745,6 +749,7 @@ function saveEntry() {
 
     alert("Entry Successfully Saved!");
 }
+
 
 // ---------- RECORDS ----------
 function deleteEntry(id) {
