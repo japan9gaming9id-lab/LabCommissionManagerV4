@@ -90,17 +90,122 @@ label {
     border-radius: 12px;
 }
 
+/* Doctor Management */
+
+.doctor-form,
+.doctor-search {
+    background: #f5f8fc;
+    padding: 15px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+}
+
+.doctor-card {
+    background: #ffffff;
+    border: 1px solid #e1e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.doctor-card h3 {
+    margin: 0 0 8px;
+}
+
+.doctor-card p {
+    color: #64748b;
+    margin: 6px 0;
+}
+
+.doctor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.doctor-actions button {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px;
+}
+
+.btn-edit {
+    background: #1769aa;
+}
+
+.btn-status {
+    background: #16845b;
+}
+
+.btn-inactive {
+    background: #b7791f;
+}
+
+.btn-delete {
+    background: #c43d4b;
+}
+
+.doctor-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.doctor-status.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.doctor-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 20px;
+}
+
+.detail-box {
+    background: #f5f8fc;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 12px 0;
+}
+
+.detail-box p {
+    margin: 10px 0;
+}
+
+.detail-stat {
+    background: #edf6ff;
+    padding: 14px;
+    border-radius: 12px;
+    margin: 8px 0;
+}
+
+.detail-entry {
+    border-bottom: 1px solid #e1e8f0;
+    padding: 12px 0;
+    font-size: 14px;
+}
+
 [hidden] {
     display: none !important;
 }
+
+/* Dark Theme */
 
 body.dark {
     background: #0b1220;
     color: white;
 }
 
-body.dark .panel {
+body.dark .panel,
+body.dark .doctor-card {
     background: #172235;
+    border-color: #35445a;
 }
 
 body.dark input,
@@ -110,6 +215,46 @@ body.dark select {
     border-color: #35445a;
 }
 
-body.dark .stats div {
+body.dark .stats div,
+body.dark .doctor-form,
+body.dark .doctor-search,
+body.dark .detail-box,
+body.dark .detail-stat {
     background: #203550;
+}
+
+body.dark .doctor-card p {
+    color: #b5c4d8;
+}
+
+body.dark .detail-entry {
+    border-color: #35445a;
+}
+
+body.dark nav button {
+    background: #26364d;
+    color: white;
+}
+
+body.dark .doctor-empty {
+    color: #b5c4d8;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .doctor-actions button {
+        min-width: 90px;
+        font-size: 12px;
+    }
 }
