@@ -854,6 +854,7 @@ function saveEntry() {
     const wasEditing = editingEntryId !== null;
 
     editingEntryId = null;
+    editingPatientTestIndex = null;
     selectedPatientTests = [];
 
     if (getElement("patientName")) getElement("patientName").value = "";
