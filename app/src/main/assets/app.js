@@ -705,7 +705,27 @@ function saveEntry() {
 }
 
 // ---------- RECORDS ----------
+function deleteEntry(id) {
+    const entry = entries.find(e => e.id == id);
 
+    if (!entry) {
+        alert("Record nahi mila");
+        return;
+    }
+
+    const confirmDelete = confirm(
+        "Kya aap is patient ki poori Entry delete karna chahte hain? Ye action undo nahi hoga."
+    );
+
+    if (!confirmDelete) return;
+
+    entries = entries.filter(e => e.id != id);
+
+    saveData();
+    render();
+
+    alert("Patient Entry Successfully Deleted!");
+}
 function renderRecords() {
     const list = getElement("recordList");
     if (!list) return;
