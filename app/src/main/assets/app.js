@@ -523,6 +523,7 @@ function renderTests() {
 
 
 
+
 // ---------- COMMISSION CALCULATION ----------
 
 function calculateCommission() {
@@ -547,13 +548,29 @@ if (getElement("entryTest")) {
         const test = tests.find(t => t.id == this.value);
 
         if (test) {
+            if (getElement("testPrice")) {
+                getElement("testPrice").value = test.price ?? "";
+            }
+
             if (getElement("commissionPercent")) {
                 getElement("commissionPercent").value = test.percent ?? 0;
             }
+
+            calculateCommission();
+        } else {
+            if (getElement("testPrice")) {
+                getElement("testPrice").value = "";
+            }
+
+            if (getElement("commissionPercent")) {
+                getElement("commissionPercent").value = "";
+            }
+
             calculateCommission();
         }
     });
 }
+
 
 
 // ---------- MULTI TEST ENTRY ----------
