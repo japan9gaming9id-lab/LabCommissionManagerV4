@@ -350,21 +350,29 @@ function renderDoctorDetails() {
 }
 
 
+
 // ---------- TEST MANAGEMENT ----------
 
 function addTest() {
     const name = (getElement("testName")?.value || "").trim();
+
+    const priceValue = getElement("testDefaultPrice")?.value ?? "";
+    const defaultPrice = Number(priceValue);
+
     const percentValue = getElement("testPercent")?.value ?? "";
     const percent = Number(percentValue);
 
     if (
         !name ||
+        priceValue === "" ||
+        !Number.isFinite(defaultPrice) ||
+        defaultPrice < 0 ||
         percentValue === "" ||
         !Number.isFinite(percent) ||
         percent < 0 ||
         percent > 100
     ) {
-        alert("Sahi Test Name aur Commission % likhen");
+        alert("Sahi Test Name, Default Price aur Commission % likhen");
         return;
     }
 
@@ -373,6 +381,7 @@ function addTest() {
         if (!test) return alert("Test nahi mila");
 
         test.name = name;
+        test.price = defaultPrice;
         test.percent = percent;
 
         alert("Test Updated Successfully!");
@@ -380,6 +389,7 @@ function addTest() {
         tests.push({
             id: Date.now(),
             name,
+            price: defaultPrice,
             percent,
             active: true
         });
@@ -402,6 +412,10 @@ function editTest(id) {
         getElement("testName").value = test.name || "";
     }
 
+    if (getElement("testDefaultPrice")) {
+        getElement("testDefaultPrice").value = test.price ?? "";
+    }
+
     if (getElement("testPercent")) {
         getElement("testPercent").value = test.percent ?? 50;
     }
@@ -417,8 +431,17 @@ function editTest(id) {
 function cancelTestEdit() {
     editingTestId = null;
 
-    if (getElement("testName")) getElement("testName").value = "";
-    if (getElement("testPercent")) getElement("testPercent").value = 50;
+    if (getElement("testName")) {
+        getElement("testName").value = "";
+    }
+
+    if (getElement("testDefaultPrice")) {
+        getElement("testDefaultPrice").value = "";
+    }
+
+    if (getElement("testPercent")) {
+        getElement("testPercent").value = 50;
+    }
 
     setText("testFormTitle", "Add New Test");
     setText("testSaveBtn", "Add Test");
@@ -475,6 +498,7 @@ function renderTests() {
         return `
             <div class="doctor-card">
                 <h3>${escapeHTML(test.name)}</h3>
+                <p>Default Price: ₹${money(test.price || 0)}</p>
                 <p>Default Commission: ${Number(test.percent || 0)}%</p>
 
                 <span class="doctor-status ${active ? "" : "inactive"}">
@@ -496,6 +520,7 @@ function renderTests() {
         `;
     }).join("");
 }
+
 
 
 // ---------- COMMISSION CALCULATION ----------
