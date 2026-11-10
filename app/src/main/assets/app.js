@@ -752,6 +752,75 @@ function saveEntry() {
 }
 
 
+// ---------- EDIT EXISTING ENTRY ----------
+
+function editEntry(id) {
+    const entry = entries.find(e => e.id == id);
+
+    if (!entry) {
+        alert("Record nahi mila");
+        return;
+    }
+
+    editingEntryId = entry.id;
+
+    // Patient details
+    if (getElement("entryDate")) {
+        getElement("entryDate").value = entry.date || "";
+    }
+
+    if (getElement("patientName")) {
+        getElement("patientName").value = entry.patient || "";
+    }
+
+    if (getElement("patientAge")) {
+        getElement("patientAge").value = entry.age || "";
+    }
+
+    // Doctor selection
+    const doctorSelect = getElement("entryDoctor");
+
+    if (doctorSelect) {
+        const doctorExists = Array.from(doctorSelect.options)
+            .some(option => option.value == entry.doctorId);
+
+        if (!doctorExists && entry.doctorId) {
+            const option = document.createElement("option");
+            option.value = entry.doctorId;
+            option.textContent = entry.doctor + " (Inactive)";
+            doctorSelect.appendChild(option);
+        }
+
+        doctorSelect.value = entry.doctorId || "";
+    }
+
+    // Existing tests
+    selectedPatientTests = getEntryTests(entry).map(test => ({
+        testId: test.testId || "",
+        test: test.test || "",
+        price: Number(test.price || 0),
+        percent: Number(test.percent || 0),
+        commission: Number(
+            test.commission ?? (
+                Number(test.price || 0) *
+                Number(test.percent || 0) / 100
+            )
+        )
+    }));
+
+    setText("entryFormTitle", "Edit Patient Entry");
+    setText("entrySaveBtn", "Update Patient Entry");
+
+    if (getElement("entryCancelEditBtn")) {
+        getElement("entryCancelEditBtn").hidden = false;
+    }
+
+    renderSelectedPatientTests();
+    calculateCommission();
+
+    showTab("entry");
+}
+
 // ---------- RECORDS ----------
 function deleteEntry(id) {
     const entry = entries.find(e => e.id == id);
