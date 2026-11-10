@@ -669,7 +669,8 @@ function renderSelectedPatientTests() {
 
 
 
-// ---------- SAVE NEW ENTRY ----------
+
+// ---------- SAVE / UPDATE ENTRY ----------
 
 function saveEntry() {
     const date = getElement("entryDate")?.value || "";
@@ -697,9 +698,7 @@ function saveEntry() {
         return;
     }
 
-    const doctor = doctors.find(d =>
-        d.id == doctorId && d.active !== false
-    );
+    const doctor = doctors.find(d => d.id == doctorId);
 
     if (!doctor) {
         alert("Selected Doctor available nahi hai");
@@ -711,7 +710,7 @@ function saveEntry() {
         test: test.test,
         price: Number(test.price),
         percent: Number(test.percent),
-        commission: Number(test.commission)
+        commission: Number(test.price) * Number(test.percent) / 100
     }));
 
     const totalPrice = savedTests.reduce(
@@ -722,34 +721,68 @@ function saveEntry() {
         (sum, test) => sum + test.commission, 0
     );
 
-    entries.push({
-        id: Date.now(),
-        date,
-        patient,
-        age,
-        doctorId: doctor.id,
-        doctor: doctor.name,
-        tests: savedTests,
-        totalPrice,
-        totalCommission
-    });
+    if (editingEntryId !== null) {
+        const entry = entries.find(e => e.id == editingEntryId);
+
+        if (!entry) {
+            alert("Edit karne wala record nahi mila");
+            return;
+        }
+
+        entry.date = date;
+        entry.patient = patient;
+        entry.age = age;
+        entry.doctorId = doctor.id;
+        entry.doctor = doctor.name;
+        entry.tests = savedTests;
+        entry.totalPrice = totalPrice;
+        entry.totalCommission = totalCommission;
+
+    } else {
+        entries.push({
+            id: Date.now(),
+            date,
+            patient,
+            age,
+            doctorId: doctor.id,
+            doctor: doctor.name,
+            tests: savedTests,
+            totalPrice,
+            totalCommission
+        });
+    }
 
     saveData();
 
+    const wasEditing = editingEntryId !== null;
+
+    editingEntryId = null;
     selectedPatientTests = [];
-    renderSelectedPatientTests();
 
     if (getElement("patientName")) getElement("patientName").value = "";
     if (getElement("patientAge")) getElement("patientAge").value = "";
+    if (getElement("entryDate")) getElement("entryDate").value = "";
+    if (getElement("entryDoctor")) getElement("entryDoctor").value = "";
     if (getElement("entryTest")) getElement("entryTest").value = "";
     if (getElement("testPrice")) getElement("testPrice").value = "";
     if (getElement("commissionPercent")) getElement("commissionPercent").value = "";
 
+    setText("entryFormTitle", "New Patient Entry");
+    setText("entrySaveBtn", "Save Patient Entry");
+
+    if (getElement("entryCancelEditBtn")) {
+        getElement("entryCancelEditBtn").hidden = true;
+    }
+
+    renderSelectedPatientTests();
     calculateCommission();
     render();
 
-    alert("Entry Successfully Saved!");
+    alert(wasEditing
+        ? "Entry Successfully Updated!"
+        : "Entry Successfully Saved!");
 }
+
 
 
 // ---------- EDIT EXISTING ENTRY ----------
