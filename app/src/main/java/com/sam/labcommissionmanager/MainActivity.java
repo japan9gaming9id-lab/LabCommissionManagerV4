@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
             getWindow().setDecorFitsSystemWindows(true);
         }
 
-        getWindow().setStatusBarColor(Color.rgb(16, 24, 39));
+        getWindow().setStatusBarColor(Color.BLACK);
         getWindow().getDecorView().setSystemUiVisibility(0);
 
         WebView webView = new WebView(this);
