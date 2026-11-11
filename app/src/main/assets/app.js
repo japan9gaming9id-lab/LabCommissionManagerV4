@@ -1291,11 +1291,24 @@ function printCommissionStatement() {
                     color: #000;
                 }
 
-                .statement-summary {
-                    margin-bottom: 20px;
-                    padding: 10px;
-                    border: 1px solid #000;
-                }
+                /* COMPACT STATEMENT SUMMARY */
+
+.statement-summary {
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border: 1px solid #000;
+    font-size: 11px;
+}
+
+.statement-summary h3 {
+    margin: 0 0 5px;
+    font-size: 13px;
+}
+
+.statement-summary p {
+    margin: 3px 0;
+    line-height: 1.3;
+}
 
                 .statement-doctor {
                     margin-bottom: 25px;
