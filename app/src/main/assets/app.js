@@ -1256,12 +1256,24 @@ const title = doctor
     const printDocument = printFrame.contentWindow.document;
 
     printFrame.onload = function () {
-        printFrame.contentWindow.focus();
 
-        setTimeout(function () {
-            printFrame.contentWindow.print();
-        }, 500);
-    };
+    const originalTitle = document.title;
+
+    document.title = title;
+
+    printFrame.contentDocument.title = title;
+
+    printFrame.contentWindow.focus();
+
+    printFrame.contentWindow.addEventListener("afterprint", function () {
+        document.title = originalTitle;
+    }, { once: true });
+
+    setTimeout(function () {
+        printFrame.contentWindow.print();
+    }, 500);
+
+};
 
     printDocument.open();
 
