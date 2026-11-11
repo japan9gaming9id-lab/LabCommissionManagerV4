@@ -1271,8 +1271,9 @@ function printCommissionStatement() {
             <style>
 
                 * {
-                    box-sizing: border-box;
-                }
+    box-sizing: border-box;
+    font-family: Arial, sans-serif !important;
+}
 
                 body {
                     font-family: Arial, sans-serif;
