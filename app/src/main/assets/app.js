@@ -1303,34 +1303,28 @@ function printCommissionStatement() {
 
                 /* DOCTOR HEADER */
 
-                .statement-header {
-                    position: relative;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 44px;
-                    background: #000;
-                    color: #fff;
-                    padding: 10px 12px;
-                }
+.statement-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px;
+    background: #000;
+    color: #fff;
+    padding: 12px;
+    text-align: center;
+}
 
-                .statement-header strong {
-                    position: absolute;
-                    left: 12px;
-                    font-size: 12px;
-                    font-weight: normal;
-                    color: #fff;
-                }
+.statement-header h3 {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 15px;
+    font-weight: normal;
+    color: #fff;
+}
 
-                .statement-header h3 {
-                    margin: 0;
-                    padding: 0 90px;
-                    text-align: center;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #fff;
-                    overflow-wrap: anywhere;
-                }
+/* DATE HEADER */
 
                 /* DATE HEADER */
 
