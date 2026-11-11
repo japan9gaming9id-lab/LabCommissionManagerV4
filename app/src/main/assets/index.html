@@ -161,6 +161,42 @@
     <div id="recordList"></div>
 </section>
 
+    <section id="commissionStatement" class="panel" hidden>
+    <h2>Doctor Commission Statement</h2>
+
+    <div class="statement-controls">
+        <label>Select Doctor</label>
+        <select id="statementDoctor">
+            <option value="all">All Doctors</option>
+        </select>
+
+        <label>From Date</label>
+        <input type="date" id="statementFromDate">
+
+        <label>To Date</label>
+        <input type="date" id="statementToDate">
+
+        <button onclick="renderCommissionStatement()">
+            Generate Statement
+        </button>
+    </div>
+
+    <div class="statement-actions">
+        <button onclick="printCommissionStatement()">
+            Print / Save PDF
+        </button>
+
+        <button onclick="shareCommissionStatement()">
+            Share Statement
+        </button>
+    </div>
+
+    <div id="commissionStatementContent">
+        <div class="doctor-empty">
+            Generate Statement पर क्लिक करें।
+        </div>
+    </div>
+    </section>
 <script src="app.js"></script>
 </body>
 </html>
