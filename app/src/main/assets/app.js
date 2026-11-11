@@ -1233,9 +1233,13 @@ function printCommissionStatement() {
         d => String(d.id) === doctorValue
     );
 
-    const title = doctor
-        ? doctor.name.replace(/[^a-z0-9_-]/gi, "_") + "_Statement"
-        : "All_Doctors_Statement";
+    const doctorName = doctor
+    ? doctor.name.replace(/^Dr\.?\s*/i, "").replace(/[^a-z0-9_-]/gi, "_")
+    : "";
+
+const title = doctor
+    ? "Dr_" + doctorName + "_Statement"
+    : "All_Doctors_Statement";
 
     const printFrame = document.createElement("iframe");
 
