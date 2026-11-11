@@ -1215,7 +1215,186 @@ function renderStatementDoctorOptions() {
 
 
 
+// ==========================================
+// GENERATE DOCTOR COMMISSION STATEMENT
+// ==========================================
 
+function renderCommissionStatement() {
+
+    const container = getElement("commissionStatementContent");
+
+    if (!container) return;
+
+    const doctorValue = getElement("statementDoctor")?.value || "all";
+    const fromDate = getElement("statementFromDate")?.value || "";
+    const toDate = getElement("statementToDate")?.value || "";
+
+    if (fromDate && toDate && fromDate > toDate) {
+        alert("From Date, To Date se badi nahi ho sakti.");
+        return;
+    }
+
+    // Select Doctors
+    const selectedDoctors = doctorValue === "all"
+        ? doctors
+        : doctors.filter(d => String(d.id) === doctorValue);
+
+    let statementHTML = "";
+
+    let grandAmount = 0;
+    let grandCommission = 0;
+    let grandPatients = 0;
+
+    // Date Format
+    function formatStatementDate(dateValue) {
+        if (!dateValue) return "-";
+
+        const parts = dateValue.split("-");
+
+        if (parts.length !== 3) return dateValue;
+
+        return parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    const periodText = fromDate || toDate
+        ? (fromDate ? formatStatementDate(fromDate) : "Beginning") +
+          " TO " +
+          (toDate ? formatStatementDate(toDate) : "Present")
+        : "ALL RECORDS";
+
+    selectedDoctors.forEach(doctor => {
+
+        // Filter Doctor Entries
+        const doctorEntries = entries.filter(entry => {
+
+            const matchesDoctor = entry.doctorId != null
+                ? String(entry.doctorId) === String(doctor.id)
+                : entry.doctor === doctor.name;
+
+            const matchesFrom = !fromDate || entry.date >= fromDate;
+            const matchesTo = !toDate || entry.date <= toDate;
+
+            return matchesDoctor && matchesFrom && matchesTo;
+
+        }).sort((a, b) =>
+            String(a.date || "").localeCompare(String(b.date || ""))
+        );
+
+        if (doctorEntries.length === 0) return;
+
+        let totalAmount = 0;
+        let totalCommission = 0;
+
+        // Patient Rows
+        const rows = doctorEntries.map(entry => {
+
+            const amount = getEntryTotalPrice(entry);
+            const commission = getEntryTotalCommission(entry);
+
+            totalAmount += amount;
+            totalCommission += commission;
+
+            const testNames = getEntryTests(entry)
+                .map(test => escapeHTML(test.test || ""))
+                .join(", ");
+
+            return `
+                <tr>
+                    <td>${escapeHTML(formatStatementDate(entry.date))}</td>
+
+                    <td>${escapeHTML(entry.patient || "Patient")}</td>
+
+                    <td>${testNames || "-"}</td>
+
+                    <td class="amount-cell">${money(amount)}</td>
+
+                    <td class="amount-cell">${money(commission)}</td>
+                </tr>
+            `;
+
+        }).join("");
+
+        grandAmount += totalAmount;
+        grandCommission += totalCommission;
+        grandPatients += doctorEntries.length;
+
+        statementHTML += `
+            <div class="statement-doctor">
+
+                <div class="statement-header">
+                    <h3>${escapeHTML(doctor.name)}</h3>
+                </div>
+
+                <div class="statement-date">
+                    ${escapeHTML(periodText)}
+                </div>
+
+                <div class="statement-table-wrap">
+
+                    <table class="statement-table">
+
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>Pt's NAME</th>
+                                <th>TEST(S)</th>
+                                <th class="amount-cell">AMOUNT</th>
+                                <th class="amount-cell">DC</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            ${rows}
+
+                            <tr class="total-row">
+                                <td colspan="3">TOTAL</td>
+                                <td class="amount-cell">${money(totalAmount)}</td>
+                                <td class="amount-cell">${money(totalCommission)}</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        `;
+
+    });
+
+    // No Records Found
+    if (!statementHTML) {
+
+        container.innerHTML = `
+            <div class="doctor-empty">
+                Selected Date Range mein koi Record nahi mila.
+            </div>
+        `;
+
+        return;
+    }
+
+    // Final Statement
+    container.innerHTML = `
+
+        <div class="statement-summary">
+
+            <h3>STATEMENT SUMMARY</h3>
+
+            <p><strong>Total Patients:</strong> ${grandPatients}</p>
+
+            <p><strong>Total Amount:</strong> ${money(grandAmount)}</p>
+
+            <p><strong>Total DC:</strong> ${money(grandCommission)}</p>
+
+        </div>
+
+        ${statementHTML}
+
+    `;
+}
 
 
 function printCommissionStatement() {
