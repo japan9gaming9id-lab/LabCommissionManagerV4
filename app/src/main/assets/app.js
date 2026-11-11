@@ -1420,6 +1420,26 @@ const title = doctor
     ? "Dr_" + doctorName + "_Statement"
     : "All_Doctors_Statement";
 
+    // Android WebView uses the native Android print framework.
+    if (window.AndroidBridge && typeof window.AndroidBridge.printStatement === "function") {
+        const printStyle = document.createElement("style");
+        printStyle.id = "nativeStatementPrintStyle";
+        printStyle.textContent = `
+            body.native-statement-print { padding: 0 !important; background: #fff !important; color: #000 !important; }
+            body.native-statement-print header,
+            body.native-statement-print nav,
+            body.native-statement-print .statement-controls,
+            body.native-statement-print .statement-actions { display: none !important; }
+            body.native-statement-print .panel { display: none !important; }
+            body.native-statement-print #commissionStatement { display: block !important; box-shadow: none !important; margin: 0 !important; padding: 8px !important; }
+            body.native-statement-print .statement-table-wrap { overflow: visible !important; }
+        `;
+        document.head.appendChild(printStyle);
+        document.body.classList.add("native-statement-print");
+        window.AndroidBridge.printStatement();
+        return;
+    }
+
     const printFrame = document.createElement("iframe");
 
     printFrame.style.position = "fixed";
@@ -1886,10 +1906,18 @@ async function downloadCommissionStatementPDF() {
     };
 
     try {
-        await html2pdf()
-            .set(options)
-            .from(wrapper)
-            .save();
+        if (window.AndroidBridge && typeof window.AndroidBridge.savePdf === "function") {
+            const pdfDataUri = await html2pdf()
+                .set(options)
+                .from(wrapper)
+                .outputPdf("datauristring");
+            window.AndroidBridge.savePdf(pdfDataUri.split(",")[1], fileName);
+        } else {
+            await html2pdf()
+                .set(options)
+                .from(wrapper)
+                .save();
+        }
 
     } catch (error) {
         console.error("PDF Download Error:", error);
@@ -2108,6 +2136,17 @@ async function shareCommissionStatement() {
             .set(options)
             .from(wrapper)
             .outputPdf("blob");
+
+        if (window.AndroidBridge && typeof window.AndroidBridge.sharePdf === "function") {
+            const pdfDataUri = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(pdfBlob);
+            });
+            window.AndroidBridge.sharePdf(pdfDataUri.split(",")[1], fileName);
+            return;
+        }
 
         const pdfFile = new File(
             [pdfBlob],
