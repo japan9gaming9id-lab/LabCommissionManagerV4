@@ -1730,174 +1730,243 @@ async function shareCommissionStatement() {
         return;
     }
 
-    const textContent = content.innerText;
-
-    try {
-        if (navigator.share) {
-            await navigator.share({
-                title: "Doctor Commission Statement",
-                text: textContent
-            });
-        } else if (navigator.clipboard) {
-            await navigator.clipboard.writeText(textContent);
-            alert("Statement copy ho gaya. Ab ise share kar sakte hain.");
-        } else {
-            alert("Sharing is browser par supported nahi hai.");
-        }
-    } catch (error) {
-        if (error.name !== "AbortError") {
-            alert("Statement share nahi ho paya.");
-        }
+    if (typeof html2pdf === "undefined") {
+        alert("PDF Library load nahi hui. Internet check Karen.");
+        return;
     }
-}
-
-
-// Date Format: DD/MM/YY
-
-function statementDate(date) {
-    if (!date) return "-";
-
-    const parts = String(date).split("-");
-
-    if (parts.length !== 3) return date;
-
-    return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
-}
-
-// Generate Commission Statement
-
-function renderCommissionStatement() {
-
-    const container = getElement("commissionStatementContent");
-
-    if (!container) return;
 
     const doctorValue = getElement("statementDoctor")?.value || "all";
 
-    const fromDate = getElement("statementFromDate")?.value || "";
-    const toDate = getElement("statementToDate")?.value || "";
+    const doctor = doctors.find(
+        d => String(d.id) === doctorValue
+    );
 
-    if (fromDate && toDate && fromDate > toDate) {
-        alert("From Date, To Date se badi nahi ho sakti.");
-        return;
-    }
+    const doctorName = doctor
+        ? doctor.name
+            .replace(/^Dr\.?\s*/i, "")
+            .replace(/[\\/:*?"<>|]/g, "_")
+            .trim()
+            .replace(/\s+/g, "_")
+        : "";
 
-    let selectedDoctors = doctorValue === "all"
-        ? doctors
-        : doctors.filter(d => String(d.id) === doctorValue);
+    const fileName = doctor
+        ? "Dr_" + doctorName + "_Statement.pdf"
+        : "All_Doctors_Statement.pdf";
 
-    let statementHTML = "";
+    const wrapper = document.createElement("div");
 
-    let grandAmount = 0;
-    let grandCommission = 0;
-    let grandPatients = 0;
+    wrapper.style.width = "190mm";
+    wrapper.style.background = "#fff";
+    wrapper.style.color = "#000";
 
-    selectedDoctors.forEach(doctor => {
+    wrapper.innerHTML = `
+        <style>
+            * {
+                box-sizing: border-box;
+                font-family: Arial, sans-serif !important;
+            }
 
-        const doctorEntries = entries.filter(entry => {
+            h2 {
+                text-align: center;
+                font-size: 17px;
+                margin: 0 0 15px;
+                padding: 8px;
+            }
 
-            const matchesDoctor =
-                entry.doctorId != null
-                    ? String(entry.doctorId) === String(doctor.id)
-                    : entry.doctor === doctor.name;
+            .statement-summary {
+                display: flex !important;
+                flex-wrap: wrap;
+                gap: 8px 25px;
+                align-items: center;
+                margin: 0 0 10px !important;
+                padding: 8px 10px !important;
+                border: 1px solid #000;
+                font-size: 11px;
+            }
 
-            const matchesFrom = !fromDate || entry.date >= fromDate;
-            const matchesTo = !toDate || entry.date <= toDate;
+            .statement-summary h3 {
+                width: 100%;
+                margin: 0 !important;
+                font-size: 13px;
+            }
 
-            return matchesDoctor && matchesFrom && matchesTo;
+            .statement-summary p {
+                margin: 0 !important;
+            }
 
-        }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            .statement-doctor {
+                margin-bottom: 25px;
+            }
 
-        if (doctorEntries.length === 0) return;
+            .statement-header {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 44px;
+                background: #000 !important;
+                color: #fff !important;
+                padding: 12px;
+                text-align: center;
+            }
 
-        let totalAmount = 0;
-        let totalCommission = 0;
+            .statement-header h3 {
+                width: 100%;
+                margin: 0;
+                text-align: center;
+                font-size: 15px;
+                font-weight: normal;
+                color: #fff !important;
+            }
 
-        const rows = doctorEntries.map(entry => {
+            .statement-date {
+                background: #000 !important;
+                color: #fff !important;
+                padding: 9px;
+                text-align: center;
+                font-size: 11px;
+                margin-bottom: 10px;
+            }
 
-            const amount = getEntryTotalPrice(entry);
-            const commission = getEntryTotalCommission(entry);
+            .statement-table-wrap {
+                overflow: visible !important;
+            }
 
-            totalAmount += amount;
-            totalCommission += commission;
+            .statement-table {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: collapse;
+                font-size: 10px;
+            }
 
-            const testNames = getEntryTests(entry)
-                .map(test => escapeHTML(test.test || ""))
-                .join(", ");
+            .statement-table th {
+                background: #000 !important;
+                color: #fff !important;
+                padding: 8px 5px;
+                border: 1px solid #000;
+                font-weight: normal;
+                text-align: left;
+            }
 
-            return `
-                <tr>
-                    <td>${statementDate(entry.date)}</td>
-                    <td>${escapeHTML(entry.patient || "-")}</td>
-                    <td>${testNames}</td>
-                    <td class="amount-cell">${amount.toFixed(2)}</td>
-                    <td class="amount-cell">${commission.toFixed(2)}</td>
-                </tr>
-            `;
+            .statement-table td {
+                padding: 7px 5px;
+                border-bottom: 1px solid #999;
+                vertical-align: top;
+                overflow-wrap: anywhere;
+            }
 
-        }).join("");
+            .statement-table th:nth-child(1),
+            .statement-table td:nth-child(1) { width: 15%; }
 
-        grandAmount += totalAmount;
-        grandCommission += totalCommission;
-        grandPatients += doctorEntries.length;
+            .statement-table th:nth-child(2),
+            .statement-table td:nth-child(2) { width: 22%; }
 
-        statementHTML += `
-            <div class="statement-doctor">
+            .statement-table th:nth-child(3),
+            .statement-table td:nth-child(3) { width: 33%; }
 
-                <div class="statement-header">
-    <h3>DOCTOR NAME: ${escapeHTML(doctor.name)}</h3>
-</div>
+            .statement-table th:nth-child(4),
+            .statement-table td:nth-child(4) { width: 15%; }
 
-                <div class="statement-date">
-                    FROM ${statementDate(fromDate || doctorEntries[0].date)}
-                    TO ${statementDate(toDate || doctorEntries[doctorEntries.length - 1].date)}
-                </div>
+            .statement-table th:nth-child(5),
+            .statement-table td:nth-child(5) { width: 15%; }
 
-                <div class="statement-table-wrap">
-                    <table class="statement-table">
-                        <thead>
-                            <tr>
-                                <th>DATE</th>
-                                <th>Pt's NAME</th>
-                                <th>TEST(S)</th>
-                                <th class="amount-cell">AMOUNT</th>
-                                <th class="amount-cell">DC</th>
-                            </tr>
-                        </thead>
+            .statement-table th.amount-cell,
+            .statement-table td.amount-cell {
+                text-align: right;
+                white-space: nowrap;
+            }
 
-                        <tbody>
-                            ${rows}
+            .statement-table .total-row td {
+                border-top: 1px solid #000;
+                border-bottom: 3px double #000;
+                font-weight: bold;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
 
-                            <tr class="total-row">
-                                <td colspan="3">TOTAL</td>
-                                <td class="amount-cell">${totalAmount.toFixed(2)}</td>
-                                <td class="amount-cell">${totalCommission.toFixed(2)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            thead {
+                display: table-header-group;
+            }
 
-            </div>
-        `;
-    });
+            tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        </style>
 
-    if (!statementHTML) {
-        container.innerHTML = `
-            <div class="doctor-empty">
-                Selected Date Range mein koi Record nahi mila.
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="statement-summary">
-            <h3>Statement Summary</h3>
-            <p>Total Patients: ${grandPatients}</p>
-            <p>Total Amount: ${money(grandAmount)}</p>
-            <p>Total Commission: ${money(grandCommission)}</p>
-        </div>
-
-        ${statementHTML}
+        <h2>DOCTOR COMMISSION STATEMENT</h2>
     `;
+
+    wrapper.appendChild(content.cloneNode(true));
+    document.body.appendChild(wrapper);
+
+    const options = {
+        margin: [10, 10, 10, 10],
+        filename: fileName,
+        image: {
+            type: "jpeg",
+            quality: 0.98
+        },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollY: 0
+        },
+        jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+        },
+        pagebreak: {
+            mode: ["css", "legacy"],
+            avoid: ["tr", ".statement-header", ".statement-date"]
+        }
+    };
+
+    try {
+
+        const pdfBlob = await html2pdf()
+            .set(options)
+            .from(wrapper)
+            .outputPdf("blob");
+
+        const pdfFile = new File(
+            [pdfBlob],
+            fileName,
+            { type: "application/pdf" }
+        );
+
+        if (
+            navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [pdfFile] })
+        ) {
+            await navigator.share({
+                title: "Doctor Commission Statement",
+                files: [pdfFile]
+            });
+
+        } else {
+            alert("Is browser mein PDF file sharing supported nahi hai. PDF download kar rahe hain.");
+
+            const url = URL.createObjectURL(pdfBlob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = fileName;
+            link.click();
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+    } catch (error) {
+
+        if (error.name !== "AbortError") {
+            console.error("PDF Share Error:", error);
+            alert("PDF share nahi ho payi. Dobara try Karen.");
+        }
+
+    } finally {
+        wrapper.remove();
+    }
 }
