@@ -1210,3 +1210,14 @@ function renderStatementDoctorOptions() {
     }
 }
 
+// Date Format: DD/MM/YY
+
+function statementDate(date) {
+    if (!date) return "-";
+
+    const parts = String(date).split("-");
+
+    if (parts.length !== 3) return date;
+
+    return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
+}
