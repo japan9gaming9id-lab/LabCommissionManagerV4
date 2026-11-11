@@ -1214,6 +1214,7 @@ function renderStatementDoctorOptions() {
 // Print / Save PDF
 
 
+
 function printCommissionStatement() {
 
     const content = getElement("commissionStatementContent");
@@ -1354,6 +1355,7 @@ function printCommissionStatement() {
 
     };
 }
+
 
 
 async function shareCommissionStatement() {
