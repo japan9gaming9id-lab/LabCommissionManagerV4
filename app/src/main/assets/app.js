@@ -1308,15 +1308,31 @@ function printCommissionStatement() {
                 /* BLACK DOCTOR HEADER */
 
                 .statement-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 8px;
-                    background: #000;
-                    color: #fff;
-                    padding: 12px;
-                    margin: 0;
-                }
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    background: #000 !important;
+    color: #fff !important;
+    padding: 12px !important;
+    margin: 0;
+}
+
+.statement-header strong {
+    display: none !important;
+}
+
+.statement-header h3 {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+    color: #fff !important;
+}
 
                 .statement-header strong,
                 .statement-header h3 {
