@@ -89,6 +89,7 @@ function getEntryTotalCommission(entry) {
 }
 
 
+
 // ---------- NAVIGATION ----------
 
 function showTab(tabName) {
@@ -112,8 +113,13 @@ function showTab(tabName) {
     if (tabName === "doctors") renderDoctors();
     if (tabName === "records") renderRecords();
 
+    if (tabName === "commissionStatement") {
+        renderStatementDoctorOptions();
+    }
+
     window.scrollTo(0, 0);
 }
+
 
 
 // ---------- DOCTOR MANAGEMENT ----------
