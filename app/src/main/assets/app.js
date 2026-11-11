@@ -1582,9 +1582,8 @@ function renderCommissionStatement() {
             <div class="statement-doctor">
 
                 <div class="statement-header">
-                    <strong>DOCTOR NAME</strong>
-                    <h3>${escapeHTML(doctor.name)}</h3>
-                </div>
+    <h3>DOCTOR NAME: ${escapeHTML(doctor.name)}</h3>
+</div>
 
                 <div class="statement-date">
                     FROM ${statementDate(fromDate || doctorEntries[0].date)}
