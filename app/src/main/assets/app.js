@@ -1182,3 +1182,31 @@ if (getElement("entryDate") && !getElement("entryDate").value) {
 
 // Initial screen render
 render();
+
+
+// ==========================================
+// DOCTOR COMMISSION STATEMENT
+// ==========================================
+
+// Populate Doctor Dropdown
+function renderStatementDoctorOptions() {
+    const select = getElement("statementDoctor");
+    if (!select) return;
+
+    const currentValue = select.value || "all";
+
+    select.innerHTML =
+        '<option value="all">All Doctors</option>' +
+        doctors.map(doctor => `
+            <option value="${escapeHTML(doctor.id)}">
+                ${escapeHTML(doctor.name)}
+            </option>
+        `).join("");
+
+    select.value = currentValue;
+
+    if (select.value !== currentValue) {
+        select.value = "all";
+    }
+}
+
