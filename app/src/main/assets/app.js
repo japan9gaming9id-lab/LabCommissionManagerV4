@@ -1215,6 +1215,7 @@ function renderStatementDoctorOptions() {
 
 
 
+
 function printCommissionStatement() {
 
     const content = getElement("commissionStatementContent");
@@ -1234,12 +1235,12 @@ function printCommissionStatement() {
         ? doctor.name.replace(/[^a-z0-9_-]/gi, "_") + "_Statement"
         : "All_Doctors_Statement";
 
-    // Create Print Frame
     const printFrame = document.createElement("iframe");
 
     printFrame.style.position = "fixed";
-    printFrame.style.width = "0";
-    printFrame.style.height = "0";
+    printFrame.style.width = "1px";
+    printFrame.style.height = "1px";
+    printFrame.style.opacity = "0";
     printFrame.style.border = "0";
     printFrame.style.left = "0";
     printFrame.style.bottom = "0";
@@ -1248,113 +1249,215 @@ function printCommissionStatement() {
 
     const printDocument = printFrame.contentWindow.document;
 
+    printFrame.onload = function () {
+
+        printFrame.contentWindow.focus();
+
+        setTimeout(function () {
+            printFrame.contentWindow.print();
+        }, 500);
+
+    };
+
     printDocument.open();
 
     printDocument.write(`
         <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
             <title>${escapeHTML(title)}</title>
 
             <style>
+
+                * {
+                    box-sizing: border-box;
+                }
+
                 body {
                     font-family: Arial, sans-serif;
                     color: #111;
-                    padding: 15px;
+                    background: #fff;
+                    margin: 0;
+                    padding: 0;
                 }
 
                 h2 {
                     text-align: center;
+                    font-size: 17px;
+                    margin: 0 0 15px;
+                    padding: 8px;
+                    color: #000;
+                }
+
+                .statement-summary {
+                    margin-bottom: 20px;
+                    padding: 10px;
+                    border: 1px solid #000;
+                }
+
+                .statement-summary h3 {
+                    margin-top: 0;
                 }
 
                 .statement-doctor {
-                    margin-bottom: 30px;
-                    page-break-inside: avoid;
+                    margin-bottom: 25px;
+                    page-break-inside: auto;
                 }
+
+                /* BLACK DOCTOR HEADER */
 
                 .statement-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    gap: 8px;
+                    background: #000;
+                    color: #fff;
+                    padding: 12px;
+                    margin: 0;
                 }
 
+                .statement-header strong,
                 .statement-header h3 {
-                    font-size: 18px;
+                    color: #fff;
+                    margin: 0;
+                    font-size: 15px;
                 }
+
+                /* BLACK DATE HEADER */
 
                 .statement-date {
-                    background: #eee;
+                    background: #000;
+                    color: #fff;
                     padding: 9px;
                     text-align: center;
                     font-weight: bold;
-                    margin-bottom: 12px;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
                     font-size: 11px;
+                    margin-bottom: 10px;
                 }
 
-                th {
-                    background: #e8e8e8;
-                    padding: 8px 5px;
-                    text-align: left;
+                .statement-table-wrap {
+                    overflow: visible !important;
                 }
 
-                td {
-                    padding: 8px 5px;
-                    border-bottom: 1px solid #ddd;
+                /* FIVE COLUMN TABLE */
+
+                .statement-table {
+                    width: 100%;
+                    table-layout: fixed;
+                    border-collapse: collapse;
+                    font-size: 9px;
+                }
+
+                .statement-table th {
+                    background: #000;
+                    color: #fff;
+                    padding: 8px 3px;
+                    text-align: center;
+                    border: 1px solid #000;
+                }
+
+                .statement-table td {
+                    padding: 7px 3px;
+                    border-bottom: 1px solid #999;
                     vertical-align: top;
+                    overflow-wrap: anywhere;
                 }
 
-                .amount-cell {
+                /* DATE */
+
+                .statement-table th:nth-child(1),
+                .statement-table td:nth-child(1) {
+                    width: 15%;
+                }
+
+                /* PATIENT NAME */
+
+                .statement-table th:nth-child(2),
+                .statement-table td:nth-child(2) {
+                    width: 22%;
+                }
+
+                /* TESTS */
+
+                .statement-table th:nth-child(3),
+                .statement-table td:nth-child(3) {
+                    width: 33%;
+                }
+
+                /* AMOUNT */
+
+                .statement-table th:nth-child(4),
+                .statement-table td:nth-child(4) {
+                    width: 15%;
+                }
+
+                /* DC */
+
+                .statement-table th:nth-child(5),
+                .statement-table td:nth-child(5) {
+                    width: 15%;
+                }
+
+                .statement-table .amount-cell {
                     text-align: right;
                     white-space: nowrap;
                 }
 
-                .total-row td {
-                    border-top: 1px solid black;
-                    border-bottom: 3px double black;
+                /* TOTAL ROW */
+
+                .statement-table .total-row td {
+                    border-top: 1px solid #000;
+                    border-bottom: 3px double #000;
                     font-weight: bold;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
                 }
 
-                .statement-summary {
-                    margin-bottom: 20px;
+                thead {
+                    display: table-header-group;
+                }
+
+                tr {
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
 
                 @page {
                     size: A4 portrait;
-                    margin: 12mm;
+                    margin: 10mm;
                 }
 
                 @media print {
-                    .statement-doctor {
-                        page-break-inside: avoid;
+
+                    body {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
                     }
+
+                    .statement-table-wrap {
+                        overflow: visible !important;
+                    }
+
                 }
+
             </style>
         </head>
 
         <body>
+
             <h2>DOCTOR COMMISSION STATEMENT</h2>
 
             ${content.innerHTML}
+
         </body>
         </html>
     `);
 
     printDocument.close();
-
-    // Open Print Preview
-    printFrame.onload = function() {
-
-        printFrame.contentWindow.focus();
-
-        printFrame.contentWindow.print();
-
-    };
 }
+
 
 
 
