@@ -1063,12 +1063,14 @@ function renderRecords() {
     `).join("");
 }
 
+
 // ---------- MAIN RENDER ----------
 
 function render() {
     renderDoctors();
     renderTests();
     renderRecords();
+    renderStatementDoctorOptions();
 
     // Active doctors only in New Entry
     const doctorSelect = getElement("entryDoctor");
@@ -1112,7 +1114,7 @@ function render() {
         }
     }
 
-    // Dashboard totals count individual tests
+    // Dashboard totals count patient entries
     let totalTests = 0;
     let totalPrice = 0;
     let totalCommission = 0;
@@ -1136,6 +1138,7 @@ function render() {
         renderDoctorDetails();
     }
 }
+
 
 
 // ---------- THEME ----------
