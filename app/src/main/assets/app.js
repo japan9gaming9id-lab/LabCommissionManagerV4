@@ -1213,19 +1213,13 @@ function renderStatementDoctorOptions() {
 
 // Print / Save PDF
 
+
 function printCommissionStatement() {
 
     const content = getElement("commissionStatementContent");
 
     if (!content || !content.querySelector(".statement-doctor")) {
         alert("Pehle Statement Generate Karen.");
-        return;
-    }
-
-    const printWindow = window.open("", "_blank");
-
-    if (!printWindow) {
-        alert("Popup blocked hai. Browser mein Popups allow Karen.");
         return;
     }
 
@@ -1239,7 +1233,23 @@ function printCommissionStatement() {
         ? doctor.name.replace(/[^a-z0-9_-]/gi, "_") + "_Statement"
         : "All_Doctors_Statement";
 
-    printWindow.document.write(`
+    // Create Print Frame
+    const printFrame = document.createElement("iframe");
+
+    printFrame.style.position = "fixed";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.left = "0";
+    printFrame.style.bottom = "0";
+
+    document.body.appendChild(printFrame);
+
+    const printDocument = printFrame.contentWindow.document;
+
+    printDocument.open();
+
+    printDocument.write(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -1329,21 +1339,22 @@ function printCommissionStatement() {
             <h2>DOCTOR COMMISSION STATEMENT</h2>
 
             ${content.innerHTML}
-
-            <script>
-                window.onload = function() {
-                    window.print();
-                };
-            <\/script>
         </body>
         </html>
     `);
 
-    printWindow.document.close();
+    printDocument.close();
+
+    // Open Print Preview
+    printFrame.onload = function() {
+
+        printFrame.contentWindow.focus();
+
+        printFrame.contentWindow.print();
+
+    };
 }
 
-
-// Share Statement
 
 async function shareCommissionStatement() {
 
