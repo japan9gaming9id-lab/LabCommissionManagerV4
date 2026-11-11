@@ -1210,6 +1210,172 @@ function renderStatementDoctorOptions() {
     }
 }
 
+
+// Print / Save PDF
+
+function printCommissionStatement() {
+
+    const content = getElement("commissionStatementContent");
+
+    if (!content || !content.querySelector(".statement-doctor")) {
+        alert("Pehle Statement Generate Karen.");
+        return;
+    }
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+        alert("Popup blocked hai. Browser mein Popups allow Karen.");
+        return;
+    }
+
+    const doctorValue = getElement("statementDoctor")?.value || "all";
+
+    const doctor = doctors.find(
+        d => String(d.id) === doctorValue
+    );
+
+    const title = doctor
+        ? doctor.name.replace(/[^a-z0-9_-]/gi, "_") + "_Statement"
+        : "All_Doctors_Statement";
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${escapeHTML(title)}</title>
+
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    color: #111;
+                    padding: 15px;
+                }
+
+                h2 {
+                    text-align: center;
+                }
+
+                .statement-doctor {
+                    margin-bottom: 30px;
+                    page-break-inside: avoid;
+                }
+
+                .statement-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .statement-header h3 {
+                    font-size: 18px;
+                }
+
+                .statement-date {
+                    background: #eee;
+                    padding: 9px;
+                    text-align: center;
+                    font-weight: bold;
+                    margin-bottom: 12px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 11px;
+                }
+
+                th {
+                    background: #e8e8e8;
+                    padding: 8px 5px;
+                    text-align: left;
+                }
+
+                td {
+                    padding: 8px 5px;
+                    border-bottom: 1px solid #ddd;
+                    vertical-align: top;
+                }
+
+                .amount-cell {
+                    text-align: right;
+                    white-space: nowrap;
+                }
+
+                .total-row td {
+                    border-top: 1px solid black;
+                    border-bottom: 3px double black;
+                    font-weight: bold;
+                }
+
+                .statement-summary {
+                    margin-bottom: 20px;
+                }
+
+                @page {
+                    size: A4 portrait;
+                    margin: 12mm;
+                }
+
+                @media print {
+                    .statement-doctor {
+                        page-break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+
+        <body>
+            <h2>DOCTOR COMMISSION STATEMENT</h2>
+
+            ${content.innerHTML}
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+}
+
+
+// Share Statement
+
+async function shareCommissionStatement() {
+
+    const content = getElement("commissionStatementContent");
+
+    if (!content || !content.querySelector(".statement-doctor")) {
+        alert("Pehle Statement Generate Karen.");
+        return;
+    }
+
+    const textContent = content.innerText;
+
+    try {
+        if (navigator.share) {
+            await navigator.share({
+                title: "Doctor Commission Statement",
+                text: textContent
+            });
+        } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(textContent);
+            alert("Statement copy ho gaya. Ab ise share kar sakte hain.");
+        } else {
+            alert("Sharing is browser par supported nahi hai.");
+        }
+    } catch (error) {
+        if (error.name !== "AbortError") {
+            alert("Statement share nahi ho paya.");
+        }
+    }
+}
+
+
 // Date Format: DD/MM/YY
 
 function statementDate(date) {
@@ -1220,4 +1386,143 @@ function statementDate(date) {
     if (parts.length !== 3) return date;
 
     return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
+}
+
+// Generate Commission Statement
+
+function renderCommissionStatement() {
+
+    const container = getElement("commissionStatementContent");
+
+    if (!container) return;
+
+    const doctorValue = getElement("statementDoctor")?.value || "all";
+
+    const fromDate = getElement("statementFromDate")?.value || "";
+    const toDate = getElement("statementToDate")?.value || "";
+
+    if (fromDate && toDate && fromDate > toDate) {
+        alert("From Date, To Date se badi nahi ho sakti.");
+        return;
+    }
+
+    let selectedDoctors = doctorValue === "all"
+        ? doctors
+        : doctors.filter(d => String(d.id) === doctorValue);
+
+    let statementHTML = "";
+
+    let grandAmount = 0;
+    let grandCommission = 0;
+    let grandPatients = 0;
+
+    selectedDoctors.forEach(doctor => {
+
+        const doctorEntries = entries.filter(entry => {
+
+            const matchesDoctor =
+                entry.doctorId != null
+                    ? String(entry.doctorId) === String(doctor.id)
+                    : entry.doctor === doctor.name;
+
+            const matchesFrom = !fromDate || entry.date >= fromDate;
+            const matchesTo = !toDate || entry.date <= toDate;
+
+            return matchesDoctor && matchesFrom && matchesTo;
+
+        }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+        if (doctorEntries.length === 0) return;
+
+        let totalAmount = 0;
+        let totalCommission = 0;
+
+        const rows = doctorEntries.map(entry => {
+
+            const amount = getEntryTotalPrice(entry);
+            const commission = getEntryTotalCommission(entry);
+
+            totalAmount += amount;
+            totalCommission += commission;
+
+            const testNames = getEntryTests(entry)
+                .map(test => escapeHTML(test.test || ""))
+                .join(", ");
+
+            return `
+                <tr>
+                    <td>${statementDate(entry.date)}</td>
+                    <td>${escapeHTML(entry.patient || "-")}</td>
+                    <td>${testNames}</td>
+                    <td class="amount-cell">${amount.toFixed(2)}</td>
+                    <td class="amount-cell">${commission.toFixed(2)}</td>
+                </tr>
+            `;
+
+        }).join("");
+
+        grandAmount += totalAmount;
+        grandCommission += totalCommission;
+        grandPatients += doctorEntries.length;
+
+        statementHTML += `
+            <div class="statement-doctor">
+
+                <div class="statement-header">
+                    <strong>DOCTOR NAME</strong>
+                    <h3>${escapeHTML(doctor.name)}</h3>
+                </div>
+
+                <div class="statement-date">
+                    FROM ${statementDate(fromDate || doctorEntries[0].date)}
+                    TO ${statementDate(toDate || doctorEntries[doctorEntries.length - 1].date)}
+                </div>
+
+                <div class="statement-table-wrap">
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>Pt's NAME</th>
+                                <th>TEST(S)</th>
+                                <th class="amount-cell">AMOUNT</th>
+                                <th class="amount-cell">DC</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${rows}
+
+                            <tr class="total-row">
+                                <td colspan="3">TOTAL</td>
+                                <td class="amount-cell">${totalAmount.toFixed(2)}</td>
+                                <td class="amount-cell">${totalCommission.toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        `;
+    });
+
+    if (!statementHTML) {
+        container.innerHTML = `
+            <div class="doctor-empty">
+                Selected Date Range mein koi Record nahi mila.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="statement-summary">
+            <h3>Statement Summary</h3>
+            <p>Total Patients: ${grandPatients}</p>
+            <p>Total Amount: ${money(grandAmount)}</p>
+            <p>Total Commission: ${money(grandCommission)}</p>
+        </div>
+
+        ${statementHTML}
+    `;
 }
