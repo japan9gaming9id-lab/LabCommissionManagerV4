@@ -1464,7 +1464,9 @@ const title = doctor
             ${content.innerHTML}
         </body>
         </html>
-    `);
+        `);
+
+    printDocument.title = title;
 
     printDocument.close();
 }
