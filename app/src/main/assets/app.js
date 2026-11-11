@@ -1483,6 +1483,243 @@ const title = doctor
     printDocument.close();
 }
 
+async function downloadCommissionStatementPDF() {
+
+    const content = getElement("commissionStatementContent");
+
+    if (!content || !content.querySelector(".statement-doctor")) {
+        alert("Pehle Statement Generate Karen.");
+        return;
+    }
+
+    if (typeof html2pdf === "undefined") {
+        alert("PDF Library load nahi hui. Internet connection check Karen.");
+        return;
+    }
+
+    const doctorValue = getElement("statementDoctor")?.value || "all";
+
+    const doctor = doctors.find(
+        d => String(d.id) === doctorValue
+    );
+
+    const doctorName = doctor
+        ? doctor.name
+            .replace(/^Dr\.?\s*/i, "")
+            .replace(/[\\/:*?"<>|]/g, "_")
+            .trim()
+        : "";
+
+    const fileName = doctor
+        ? "Dr_" + doctorName.replace(/\s+/g, "_") + "_Statement.pdf"
+        : "All_Doctors_Statement.pdf";
+
+    const wrapper = document.createElement("div");
+
+    wrapper.style.width = "190mm";
+    wrapper.style.padding = "0";
+    wrapper.style.margin = "0";
+    wrapper.style.background = "#ffffff";
+    wrapper.style.color = "#000000";
+    wrapper.style.position = "absolute";
+    wrapper.style.left = "0";
+    wrapper.style.top = "0";
+    wrapper.style.zIndex = "-1";
+
+    wrapper.innerHTML = `
+        <style>
+            * {
+                box-sizing: border-box;
+                font-family: Arial, sans-serif !important;
+            }
+
+            h2 {
+                text-align: center;
+                font-size: 17px;
+                margin: 0 0 15px;
+                padding: 8px;
+                color: #000;
+            }
+
+            .statement-summary {
+                display: flex !important;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px 25px;
+                margin: 0 0 10px !important;
+                padding: 8px 10px !important;
+                border: 1px solid #000;
+                font-size: 11px;
+            }
+
+            .statement-summary h3 {
+                width: 100%;
+                margin: 0 !important;
+                font-size: 13px;
+            }
+
+            .statement-summary p {
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 1.3;
+            }
+
+            .statement-doctor {
+                margin-bottom: 25px;
+            }
+
+            .statement-header {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 44px;
+                background: #000 !important;
+                color: #fff !important;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .statement-header h3 {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+                font-size: 15px;
+                font-weight: normal;
+                color: #fff !important;
+            }
+
+            .statement-date {
+                background: #000 !important;
+                color: #fff !important;
+                padding: 9px;
+                text-align: center;
+                font-size: 11px;
+                margin-bottom: 10px;
+            }
+
+            .statement-table-wrap {
+                overflow: visible !important;
+            }
+
+            .statement-table {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: collapse;
+                font-size: 10px;
+            }
+
+            .statement-table th {
+                background: #000 !important;
+                color: #fff !important;
+                padding: 8px 5px;
+                text-align: left;
+                border: 1px solid #000;
+                font-weight: normal;
+            }
+
+            .statement-table td {
+                padding: 7px 5px;
+                border-bottom: 1px solid #999;
+                vertical-align: top;
+                text-align: left;
+                overflow-wrap: anywhere;
+            }
+
+            .statement-table th:nth-child(1),
+            .statement-table td:nth-child(1) {
+                width: 15%;
+            }
+
+            .statement-table th:nth-child(2),
+            .statement-table td:nth-child(2) {
+                width: 22%;
+            }
+
+            .statement-table th:nth-child(3),
+            .statement-table td:nth-child(3) {
+                width: 33%;
+            }
+
+            .statement-table th:nth-child(4),
+            .statement-table td:nth-child(4) {
+                width: 15%;
+            }
+
+            .statement-table th:nth-child(5),
+            .statement-table td:nth-child(5) {
+                width: 15%;
+            }
+
+            .statement-table th.amount-cell,
+            .statement-table td.amount-cell {
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .statement-table .total-row td {
+                border-top: 1px solid #000;
+                border-bottom: 3px double #000;
+                font-weight: bold;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        </style>
+
+        <h2>DOCTOR COMMISSION STATEMENT</h2>
+    `;
+
+    wrapper.appendChild(content.cloneNode(true));
+
+    document.body.appendChild(wrapper);
+
+    const options = {
+        margin: [10, 10, 10, 10],
+        filename: fileName,
+        image: {
+            type: "jpeg",
+            quality: 0.98
+        },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollY: 0
+        },
+        jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+        },
+        pagebreak: {
+            mode: ["css", "legacy"],
+            avoid: ["tr", ".statement-header", ".statement-date"]
+        }
+    };
+
+    try {
+        await html2pdf()
+            .set(options)
+            .from(wrapper)
+            .save();
+
+    } catch (error) {
+        console.error("PDF Download Error:", error);
+        alert("PDF download nahi ho paya. Dobara try Karen.");
+
+    } finally {
+        wrapper.remove();
+    }
+}
 
 async function shareCommissionStatement() {
 
